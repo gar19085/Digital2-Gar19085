@@ -1,8 +1,8 @@
 /*
  * File:   Lab01.c
- * Author: rodri
+ * Author: Rodrigo García 19085
  *
- * Created on 21 de enero de 2021, 06:09 PM
+ * Created on 21 de enero de 2021
  */
 
 // PIC16F887 Configuration Bit Settings
@@ -30,9 +30,39 @@
 
 #include <xc.h>
 
+/*
+ VARIABLES
+ */
+#define LEDR  TRISEbits.TRISE0 
+#define LEDA  TRISEbits.TRISE1 
+#define LEDV  TRISEbits.TRISE2 
 
-#include <xc.h>
+
+/*
+ FUNCIONES
+ */
+void Setup(void);
+
+
+/*
+ MAIN
+ */
 
 void main(void) {
+    Setup();
+    while (1){
+        
+    }
+}
+
+/*
+ SETUP
+ */
+
+void Setup(void) {
+    PORTB = 0;
+    
     return;
 }
+
+
