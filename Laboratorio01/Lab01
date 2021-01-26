@@ -68,24 +68,31 @@ void main(void){
         if(START==1){
             Semaforo();
             } 
-        else if (FLAG == 1){
+        
+        if (FLAG == 1){
             if (PJ1==1){
-            J1 = 1;    
-    }
-            else if (PJ1==0 && J1==1){
-            J1=0;
-            DECADAJ1++;
-            CONTADORJ1();
-    }
-            else if (PJ2==1){
-            J2 = 1;    
-    }
-            else if (PJ2==0 && J2==1){
-            J2=0;
-            DECADAJ2++;
-            CONTADORJ2();
-    }            
+            J1 = 1;     
         }
+            else {
+                if (J1==1 && PJ1==0){
+                J1=0;
+                DECADAJ1++;
+                CONTADORJ1();
+            }
+            }
+    }
+        if (FLAG==1){
+            if (PJ2==1){
+            J2=1;    
+        }
+            else {
+                if (J2==1 && PJ2==0){
+                J2=0;
+                DECADAJ2++;
+                CONTADORJ2();            
+            }
+            }
+        }    
     }
 }
 
@@ -112,6 +119,10 @@ void Setup(void){
 
 
 void Semaforo(void){
+    PORTC=0;
+    PORTD=0;
+    WIN1=0;
+    WIN2=0;
         LEDR = 1;
         LEDA = 0;
         LEDV = 0; 
@@ -135,12 +146,15 @@ void CONTADORJ1(void){
     if (DECADAJ1==1){
         PORTC=1;
     }
-    else if (DECADAJ1 > 1 && DECADAJ1 < 8){
-        PORTC=PORTC<<1;       
-    }
-    else if (PORTC == 8){
-        WIN1=1;
-        FLAG=0;
+        else if (DECADAJ1>1 && DECADAJ1<8){
+            PORTC=PORTC<<1;       
+    }           
+        else if (DECADAJ1==8){
+            DECADAJ1=0;     
+            RC6=0;
+            RC7=1;
+            WIN1=1;
+            FLAG=0;
     }            
 }
 
@@ -152,10 +166,12 @@ void CONTADORJ2(void){
     else if (DECADAJ2 > 1 && DECADAJ2 < 8){
         PORTD=PORTD<<1;       
     }
-    else if (PORTD == 8){
+    else if (DECADAJ2 == 8){
+        DECADAJ2=0;  
+        RD6=0;
+        RD7=1;        
         WIN2=1;
         FLAG=0;
     }            
 }
-
 
