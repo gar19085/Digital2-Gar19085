@@ -33,14 +33,15 @@
 /*
  VARIABLES
  */
-#define LEDR  TRISEbits.TRISE0 
-#define LEDA  TRISEbits.TRISE1 
-#define LEDV  TRISEbits.TRISE2 
-#define START   TRISBbits.TRISB0
-#define PJ1   TRISBbits.TRISB1
-#define PJ2   TRISBbits.TRISB2
+#define LEDR  RE0
+#define LEDA  RE1 
+#define LEDV  RE2 
+#define START RB0
+#define PJ1   RB1
+#define PJ2   RB2
 #define _XTAL_FREQ 8000000
 
+char ESTADO;
 
 /*
  FUNCIONES
@@ -49,7 +50,7 @@ void Setup(void);
 void Semaforo (void);
 void Jugador1 (void);
 void Jugador2 (void);
-void antirrebote (void);
+void PushSemaforo (void);
 
 /*
  MAIN
@@ -58,7 +59,7 @@ void antirrebote (void);
 void main(void) {
     Setup();
     while (1){
-        Semaforo();
+        PushSemaforo();
 
     }
 }
@@ -71,20 +72,21 @@ void Setup(void) {
     ANSEL = 0;
     ANSELH = 0;
     
-    
-    PORTC = 0;    
+    TRISB = 1;
+    TRISC = 0;
+    TRISD = 0;
+    TRISE = 0;
+    PORTA = 0;
+    PORTB = 0;    
+    PORTC = 0;
+    PORTD = 0;
     PORTE = 0;
+    OPTION_REG = 0b10000000;
      
 }
 
 
 void Semaforo(void){
-    if (START == 0){
-        LEDR = 0;
-        LEDA = 0;
-        LEDV = 0;  
-    }
-    else {
         LEDR = 1;
         LEDA = 0;
         LEDV = 0; 
@@ -100,7 +102,6 @@ void Semaforo(void){
         LEDR = 0;
         LEDA = 0;
         LEDV = 0;         
-    }
 }
 
 
@@ -114,8 +115,11 @@ void Jugador2 (){
 }
 
 
-void antirrebote (){
+void PushSemaforo (void){
     while (1){
-        
+        if (START == 1){
+            Semaforo();
+        }
+
     }
 }
