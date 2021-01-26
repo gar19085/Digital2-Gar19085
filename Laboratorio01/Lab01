@@ -39,9 +39,9 @@
 #define START RB0
 #define PJ1   RB1
 #define PJ2   RB2
+#define WIN1  RB6
+#define WIN2  RB7
 #define _XTAL_FREQ 8000000
-
-char ESTADO;
 
 /*
  FUNCIONES
@@ -53,14 +53,15 @@ void Jugador2 (void);
 void PushSemaforo (void);
 
 /*
- MAIN
+ MAIN LOOP
  */
 
-void main(void) {
+void main(void){
     Setup();
     while (1){
-        PushSemaforo();
-
+        if (START==1){
+            Semaforo();
+        }
     }
 }
 
@@ -68,11 +69,12 @@ void main(void) {
  SETUP
  */
 
-void Setup(void) {
+void Setup(void){
     ANSEL = 0;
     ANSELH = 0;
     
-    TRISB = 1;
+    TRISA = 1;
+    TRISB = 0b00000111;
     TRISC = 0;
     TRISD = 0;
     TRISE = 0;
@@ -114,12 +116,3 @@ void Jugador2 (){
     
 }
 
-
-void PushSemaforo (void){
-    while (1){
-        if (START == 1){
-            Semaforo();
-        }
-
-    }
-}
