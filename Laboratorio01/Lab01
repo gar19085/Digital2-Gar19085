@@ -1,4 +1,4 @@
-/*
+*
  * File:   Lab01.c
  * Author: Rodrigo García 19085
  *
@@ -43,11 +43,13 @@
 #define WIN2  RB7
 #define _XTAL_FREQ 8000000
 
+//DEFINO NOMBRES ESPECIFICOS A PINES ESPECIFICOS ASÍ ES MÁS SENCILLO IDENTIFICAR LOS LEDS Y PUSH BUTTONS
+
 char FLAG;
 char DECADAJ1;
 char DECADAJ2;
 char J1, J2;
-
+//CREO VARIABLES QUE LUEGO ME SERVIRAN COMO BANDERAS
 
 /*
  FUNCIONES
@@ -57,30 +59,31 @@ void Semaforo (void);
 void PushSemaforo (void);
 void CONTADORJ1(void);
 void CONTADORJ2(void); 
-
+//GENERO MIS FUNCIONES
 /*
  MAIN LOOP
  */
 
 void main(void){
-    Setup();
+    Setup(); //LLAMO A LA FUNCIÓN SETUP
     while (1){
-        if(START==1){
-            Semaforo();
+        if(START==1){ //REVISO SI MI PSUHBUTTON DE INICIO ESTA EN 1
+            Semaforo(); //LLAMO LA FUNCIÓN DE SEMAFORO
             } 
         
-        if (FLAG == 1){
-            if (PJ1==1){
-            J1 = 1;     
+        if (FLAG == 1){ //REVISO SI MI BANDERA "FLAG" ESTA EN 1 ASI PUEDO COMENZAR EL JUEGO
+            if (PJ1==1){ //REVISO SI ESTA PULSADO EL BOTON DEL JUGADOR 1
+            J1 = 1;     //LE INDICO A LA BANDERA DEL JUGADOR 1 QUE ESTA SE HABILITE
         }
             else {
-                if (J1==1 && PJ1==0){
-                J1=0;
-                DECADAJ1++;
-                CONTADORJ1();
+                if (J1==1 && PJ1==0){ //SI YA NO SE ESTQA PULSANDO EL BOTON PERO LA BANDERA DEL JUGADOR SI ESTA ENCENDIDA SE REALIZA LO SIGUIENTE
+                J1=0;   //APAGO LA BANDERA DEL JUGADOR 1
+                DECADAJ1++; //LE SUMO 1 A MI VARIABLE DEL CONTADOR EN DECADA
+                CONTADORJ1(); //LLAMO LA FUNCIÓN CONTADOR
             }
             }
     }
+        //MISMO PROCEDIMIENTO QUE PARA EL JUGADOR 1
         if (FLAG==1){
             if (PJ2==1){
             J2=1;    
@@ -101,27 +104,27 @@ void main(void){
  */
 
 void Setup(void){
-    ANSEL = 0;
-    ANSELH = 0;
-    TRISA = 1;
-    TRISB = 0b00000111;
-    TRISC = 0;
-    TRISD = 0;
+    ANSEL = 0; 
+    ANSELH = 0; //INDICO EN 0 ANSEL Y ANSELH, PARA ASÍ INDICAR LOS PUERTOS COMO DIGITALES
+    TRISA = 1;  //INDICO LOS PINES DEL PUERTOA COMO ENTRADAS
+    TRISB = 0b00000111; //INDICO LOS PINRES RB0-RB2 COMO ENTRADAS Y LOS DEMAS COMO SALIDAS
+    TRISC = 0; //INDICADOS COMO SALIDAS
+    TRISD = 0; 
     TRISE = 0;
-    PORTA = 0;
+    PORTA = 0; //LIMPIEZA DE PUERTOS
     PORTB = 0;    
     PORTC = 0;
     PORTD = 0;
     PORTE = 0;
-    OPTION_REG = 0b10000000;
+    OPTION_REG = 0b10000000; //APAGO PULLUPS
      
 }
 
 
 void Semaforo(void){
-    PORTC=0;
+    PORTC=0; //LIMPIEZA DE PUERTOS NUEVAMENTE
     PORTD=0;
-    WIN1=0;
+    WIN1=0; //LIMPIEZA DE INDICADORES DE GANADOR
     WIN2=0;
         LEDR = 1;
         LEDA = 0;
@@ -134,7 +137,7 @@ void Semaforo(void){
         LEDR = 0;
         LEDA = 0;
         LEDV = 1; 
-        FLAG=1;
+        FLAG=1; //ENCIENDO MI BANDERA PARA PERMITIR EL INICIO DEL JUEGO
         __delay_ms(100);
         LEDR = 0;
         LEDA = 0;
@@ -142,23 +145,23 @@ void Semaforo(void){
 }
 
 
-void CONTADORJ1(void){
-    if (DECADAJ1==1){
-        PORTC=1;
+void CONTADORJ1(void){ 
+    if (DECADAJ1==1){ //SI MI VARIABLE DECADAJ1 ES IGUAL A 1
+        PORTC=1;      //ENCIENDO EL PRIMER BIT DEL PUERTOC
     }
-        else if (DECADAJ1>1 && DECADAJ1<8){
-            PORTC=PORTC<<1;       
+        else if (DECADAJ1>1 && DECADAJ1<8){ //SI MI VARIABLE DECADAJ1 ES MAYOR A 1 Y MENOR QUE 8
+            PORTC=PORTC<<1;                 //REALIZO UN SHIFT A LA IZQUIERDA EN EL PUERTOC PARA MOVER EL BIT ENCENDIDO AL SIGUIENTE 
     }           
-        else if (DECADAJ1==8){
-            DECADAJ1=0;     
-            RC6=0;
-            RC7=1;
-            WIN1=1;
-            FLAG=0;
+        else if (DECADAJ1==8){  //SI MI VARIABLE DECADAJ1 ES IGUAL A 8
+            DECADAJ1=0;         //INDICO A MI VARIABLE QUE NUEVAMENTE TENGA EL VALOR 0
+            RC6=0;              //APAGO EL PIN RC6
+            RC7=1;              //ENCIENDO EL PIN RC7
+            WIN1=1;             //ENCIENDO MI INDICADOR DEL JUGADOR 1 QUE GANO
+            FLAG=0;             //APAGO MI BANDERA "FLAG" PARA BLOQUEAR LOS BOTONASOS DEL JUGADOR2 Y ASÍ FINALIZAR EL JUEGO HASTA QUE SE PRESIONE "START"
     }            
 }
 
-
+//MISMO FUNCIONAMIENTO QUE EN CONTADORJ1
 void CONTADORJ2(void){
     if (DECADAJ2==1){
         PORTD=1;
