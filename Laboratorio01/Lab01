@@ -42,14 +42,14 @@
 #define _XTAL_FREQ 8000000
 
 
-
-
-
 /*
  FUNCIONES
  */
 void Setup(void);
 void Semaforo (void);
+void Jugador1 (void);
+void Jugador2 (void);
+void antirrebote (void);
 
 /*
  MAIN
@@ -59,6 +59,7 @@ void main(void) {
     Setup();
     while (1){
         Semaforo();
+
     }
 }
 
@@ -70,17 +71,10 @@ void Setup(void) {
     ANSEL = 0;
     ANSELH = 0;
     
-    LEDR = 0;
-    LEDA = 0;
-    LEDV = 0;    
     
-    
-    PORTA = 0;
-    PORTB = 0;
-    PORTC = 0;
-    PORTD = 0;
+    PORTC = 0;    
     PORTE = 0;
-    
+     
 }
 
 
@@ -94,15 +88,34 @@ void Semaforo(void){
         LEDR = 1;
         LEDA = 0;
         LEDV = 0; 
-        __delay_ms(50);
+        __delay_ms(200);
         LEDR = 0;
         LEDA = 1;
         LEDV = 0; 
-        __delay_ms(50);
+        __delay_ms(200);
         LEDR = 0;
         LEDA = 0;
         LEDV = 1; 
-        __delay_ms(50);
+        __delay_ms(200);
+        LEDR = 0;
+        LEDA = 0;
+        LEDV = 0;         
+    }
+}
+
+
+void Jugador1 (){
+    
+}
+
+
+void Jugador2 (){
+    
+}
+
+
+void antirrebote (){
+    while (1){
         
     }
 }
