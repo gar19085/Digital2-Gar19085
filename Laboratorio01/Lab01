@@ -54,9 +54,9 @@ char J1, J2;
  */
 void Setup(void);
 void Semaforo (void);
-void Jugador1 (void);
-void Jugador2 (void);
 void PushSemaforo (void);
+void CONTADORJ1(void);
+void CONTADORJ2(void); 
 
 /*
  MAIN LOOP
@@ -69,10 +69,22 @@ void main(void){
             Semaforo();
             } 
         else if (FLAG == 1){
-            Jugador1();            
-        }
-        else if (FLAG == 1){
-            Jugador2();
+            if (PJ1==1){
+            J1 = 1;    
+    }
+            else if (PJ1==0 && J1==1){
+            J1=0;
+            DECADAJ1++;
+            CONTADORJ1();
+    }
+            else if (PJ2==1){
+            J2 = 1;    
+    }
+            else if (PJ2==0 && J2==1){
+            J2=0;
+            DECADAJ2++;
+            CONTADORJ2();
+    }            
         }
     }
 }
@@ -119,20 +131,31 @@ void Semaforo(void){
 }
 
 
-void Jugador1(void){
-    if (PJ1==1){
-       J1 = 1;    
+void CONTADORJ1(void){
+    if (DECADAJ1==1){
+        PORTC=1;
     }
-    else if (PJ1==0 && J1==1){
-        DECADAJ1++;
+    else if (DECADAJ1 > 1 && DECADAJ1 < 8){
+        PORTC=PORTC<<1;       
     }
+    else if (PORTC == 8){
+        WIN1=1;
+        FLAG=0;
+    }            
 }
 
 
-void Jugador2(void){
-    if (PJ2==1){
-        
+void CONTADORJ2(void){
+    if (DECADAJ2==1){
+        PORTD=1;
     }
+    else if (DECADAJ2 > 1 && DECADAJ2 < 8){
+        PORTD=PORTD<<1;       
+    }
+    else if (PORTD == 8){
+        WIN2=1;
+        FLAG=0;
+    }            
 }
 
 
