@@ -36,13 +36,20 @@
 #define LEDR  TRISEbits.TRISE0 
 #define LEDA  TRISEbits.TRISE1 
 #define LEDV  TRISEbits.TRISE2 
+#define START   TRISBbits.TRISB0
+#define PJ1   TRISBbits.TRISB1
+#define PJ2   TRISBbits.TRISB2
+#define _XTAL_FREQ 8000000
+
+
+
 
 
 /*
  FUNCIONES
  */
 void Setup(void);
-
+void Semaforo (void);
 
 /*
  MAIN
@@ -51,7 +58,7 @@ void Setup(void);
 void main(void) {
     Setup();
     while (1){
-        
+        Semaforo();
     }
 }
 
@@ -60,9 +67,42 @@ void main(void) {
  */
 
 void Setup(void) {
-    PORTB = 0;
+    ANSEL = 0;
+    ANSELH = 0;
     
-    return;
+    LEDR = 0;
+    LEDA = 0;
+    LEDV = 0;    
+    
+    
+    PORTA = 0;
+    PORTB = 0;
+    PORTC = 0;
+    PORTD = 0;
+    PORTE = 0;
+    
 }
 
 
+void Semaforo(void){
+    if (START == 0){
+        LEDR = 0;
+        LEDA = 0;
+        LEDV = 0;  
+    }
+    else {
+        LEDR = 1;
+        LEDA = 0;
+        LEDV = 0; 
+        __delay_ms(50);
+        LEDR = 0;
+        LEDA = 1;
+        LEDV = 0; 
+        __delay_ms(50);
+        LEDR = 0;
+        LEDA = 0;
+        LEDV = 1; 
+        __delay_ms(50);
+        
+    }
+}
