@@ -6,12 +6,15 @@
  */
 
 
+
+
+
 // PIC16F887 Configuration Bit Settings
 
 // 'C' source line config statements
 
 // CONFIG1
-#pragma config FOSC = EXTRC_CLKOUT// Oscillator Selection bits (RC oscillator: CLKOUT function on RA6/OSC2/CLKOUT pin, RC on RA7/OSC1/CLKIN)
+#pragma config FOSC = INTRC_NOCLKOUT// Oscillator Selection bits (INTOSCIO oscillator: I/O function on RA6/OSC2/CLKOUT pin, I/O function on RA7/OSC1/CLKIN)
 #pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled and can be enabled by SWDTEN bit of the WDTCON register)
 #pragma config PWRTE = OFF      // Power-up Timer Enable bit (PWRT disabled)
 #pragma config MCLRE = OFF      // RE3/MCLR pin function select bit (RE3/MCLR pin function is digital input, MCLR internally tied to VDD)
@@ -29,11 +32,8 @@
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
 
-/*
- INCLUIR LIBRERIAS CREADAS
- */
-
 #include <xc.h>
+
 #include "7Segmentos.h"
 #include "Oscilador.h"
 
@@ -46,16 +46,13 @@
 
 char FLAG1;
 char FLAG2;
-char DECDSUM;
-char DECDRES;
+char DECADA;
 
 
 
 /*
  FUNCIONES
  */
-void ContadorSum(void);
-void ContadorRes(void);
 void Setup(void);
 
 
@@ -63,7 +60,7 @@ void Setup(void);
 void __interrupt() isr(void){
     if (INTCONbits.TMR0IF == 1){
         INTCONbits.TMR0IF = 0;
-        TMR0=256;
+        TMR0=236;
     }
 }
 
@@ -72,15 +69,29 @@ void __interrupt() isr(void){
  */
 
 void main(void) {
-    INTOSC8MHZ();    
+    initOsc(20);    
     Setup();
         while(1){
-        
-    }
-   
-}
+            if(SUM == 1){
+                FLAG1=1;
+            }
+                if(FLAG1 == 1 && SUM == 0){
+                    FLAG1=0;
+                    PORTD++;
+                }     
+                if(RES==1){
+                    FLAG2=1;
+                }
+                if(FLAG2==1 && RES==0){
+                    FLAG2=0;
+                    PORTD--;
+                }     
+            }
+        }      
+    
 
-void setup(void){
+
+void Setup(void){
     PORTA = 0;
     PORTB = 0;
     PORTC = 0;
@@ -97,34 +108,3 @@ void setup(void){
     TRISE = 0;
 }
 
-
-
-void ContadorSum(void) {
-    if (DECDSUM==1){ //SI MI VARIABLE DECDSUM ES IGUAL A 1
-        PORTD=1;      //ENCIENDO EL PRIMER BIT DEL PUERTOC
-    }
-        else if (DECDSUM>1 && DECDSUM<8){ //SI MI VARIABLE DECDSUM ES MAYOR A 1 Y MENOR QUE 8
-            PORTD=PORTD<<1;                 //REALIZO UN SHIFT A LA IZQUIERDA EN EL PUERTOC PARA MOVER EL BIT ENCENDIDO AL SIGUIENTE 
-    }           
-        else if (DECDSUM==8){  //SI MI VARIABLE DECDSUM ES IGUAL A 8
-            DECDSUM=0;         //INDICO A MI VARIABLE QUE NUEVAMENTE TENGA EL VALOR 0
-            RD6=0;              //APAGO EL PIN RC6
-            RD7=1;              //ENCIENDO EL PIN RC7
-            FLAG1=0;             //APAGO MI BANDERA "FLAG" PARA BLOQUEAR LOS BOTONASOS DEL JUGADOR2 Y ASÍ FINALIZAR EL JUEGO HASTA QUE SE PRESIONE "START"
-    }            
-}
-
-void ContadorRes(void){
-    if (DECDRES==1){ //SI MI VARIABLE DECDSUM ES IGUAL A 1
-        PORTD=1;      //ENCIENDO EL PRIMER BIT DEL PUERTOC
-    }
-        else if (DECDRES>1 && DECDRES<8){ //SI MI VARIABLE DECDSUM ES MAYOR A 1 Y MENOR QUE 8
-            PORTD=PORTD>>1;                 //REALIZO UN SHIFT A LA DERECHA EN EL PUERTOC PARA MOVER EL BIT ENCENDIDO AL SIGUIENTE 
-    }           
-        else if (DECDRES==8){  //SI MI VARIABLE DECDSUM ES IGUAL A 8
-            DECDRES=0;         //INDICO A MI VARIABLE QUE NUEVAMENTE TENGA EL VALOR 0
-            RD6=1;              //APAGO EL PIN RC6
-            RD7=0;              //ENCIENDO EL PIN RC7
-            FLAG2=0;             //APAGO MI BANDERA "FLAG" PARA BLOQUEAR LOS BOTONASOS DEL JUGADOR2 Y ASÍ FINALIZAR EL JUEGO HASTA QUE SE PRESIONE "START"
-    }                
-}
