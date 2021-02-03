@@ -33,7 +33,7 @@
 // Use project enums instead of #define for ON and OFF.
 
 #include <xc.h>
-
+//INCLUYO LAS LIBRERIAS CREADAS POR EL USUARIO(YO RODRIGO GARCIA))
 #include "7Segmentos.h"
 #include "Oscilador.h"
 #include "ADC.h"
@@ -64,23 +64,23 @@ void ADCG(void);
 
 
 void __interrupt() isr(void){
-    if (INTCONbits.TMR0IF == 1){
+    if (INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
         TMR0=236;   
         INTCONbits.TMR0IF = 0;
-        ADCGO++;
-        RE0 = 0;
-        RE1 = 0;
-        if(FLG == 0){
-            FLG = 1;
-            RE0 = 1;
-            RE1 = 0;
-            HIGH=valorADC;
-            HIGH=HIGH & 0b11110000;    
-            HIGH=HIGH>>4;
-            LOW=valorADC & 0b00001111;
-            Display7(HIGH);    
+        ADCGO++; //SE VA SUMANDO CADA VEZ ESTA VARIABLE YA QUE ES UN DELAY DE ADQUISICIÓN EXTRA
+        RE0 = 0; //LIMPIOO LOS PINES EN DONDE SE ENCUENTRAN LOS TRANSISTORES PARA ASÍ
+        RE1 = 0; //INICIAR LA MULTIPLEXACIÓN DE LOS DISPLAYS
+        if(FLG == 0){ //SI MI BANDERA SE ENCUENTRA EN 0
+            FLG = 1;  //ENCIENDO LA BANDERA
+            RE0 = 1; //ENCIENDO EL TRANSISTOR CORRESPONDIENTE AL PRIMER DISPLAY
+            RE1 = 0; //
+            HIGH=valorADC; //LUEGO SEPARO EL VALOR EN DONDE SE GUARDA LA INFO DEL ADC(valorADC)
+            HIGH=HIGH & 0b11110000; //SEPARO LA INFORMACIÓN EN NIBBLES HIGH Y LOW REALIZO UN AND
+            HIGH=HIGH>>4;     //ENTONCES MUEVO PARA LA DERECHA LOS BITS MÁS SIGNIFICATIVOS 
+            LOW=valorADC & 0b00001111; //HAGO LO MISMO PERO CON EL NIBBLE LOW
+            Display7(HIGH);    //LLAMO A LA FUNCION DE MI LIBRERÍA QUE CONTIENE LA TABLA PARA LOS VALORES DE MI DISPLAY DE 7 SEGMENTOS
         }        
-        if(FLG == 1){
+        if(FLG == 1){  //REALIZO LO MISMO SOLO QUE PARA EL SEGUNDO DISPLAY UTILIZANDO EL NIBBLE LOW
             FLG = 0;
             RE0 = 0;
             RE1 = 1;
@@ -92,15 +92,15 @@ void __interrupt() isr(void){
         }    
     }
     
-    if(INTCONbits.RBIF == 1){
-                if(SUM == 1){
-                    FLAG1=1;
+    if(INTCONbits.RBIF == 1){ //CONFIGURACIÓN DE INTERRUPCIÓN EN EL PUERTOB
+                if(SUM == 1){ //SI MI PUSH BUTTON DE SUMA ESTA EN 1
+                    FLAG1=1; //SE ACTIVA MI BANDERA
                 }
-                if(FLAG1 == 1 && SUM == 0){
-                    FLAG1=0;
-                    PORTD++;
+                if(FLAG1 == 1 && SUM == 0){ //SI MI FLAG1 = 1 Y MI PUSH BUTTON EN 0
+                    FLAG1=0; //SE APAGA EL FLAG1
+                    PORTD++; //SE LE SUMA 1 AL PUERTO D EN DONDE SE ENCENTRA EL CONTADOR
                 }     
-                if(RES==1){
+                if(RES==1){ //MISMO PROCEDIMIENTO SOLO QUE ESTE RESTA VALORES AL CONTADOR
                     FLAG2=1;
                 }
                 if(FLAG2==1 && RES==0){
@@ -110,9 +110,10 @@ void __interrupt() isr(void){
         INTCONbits.RBIF = 0;
        
     }
-    if(PIR1bits.ADIF==1){
+    if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC
         PIR1bits.ADIF = 0;
-        valorADC = ADRESH;
+        valorADC = ADRESH; //LE INDICO A MI VARIABLE valorADC EL VALRO DE ADRESH QUE CORRESPONDE
+                           //AL VALOR DEL ADC
     }
 }
 
@@ -121,29 +122,28 @@ void __interrupt() isr(void){
  */
 
 void main(void) {
-    initOsc(8);    
-    Setup();
-    initADC(1,0); 
-    Display7(valorADC);
+    initOsc(8);//LLAMO LA FUNCIÓN DE MI LIBRERIA DEL OSCILADOR
+    Setup();   //LLAMO A MI FUNCIÓN SETUP
+    initADC(1,0); //LLAMO A LA FUNCÓN DE MI LIBRERIA DE ADC PAR ASÍ CONFIGURARLO
         while(1){
-            ADCG();
-            if(valorADC>PORTD){
-                ALARMA=1;
+            ADCG(); //LLAMO A MI RUTINA QUE SE ENCARGA DEL DELAY DE ADQUISICIÓN
+            if(valorADC>PORTD){ //COMPARO LOS VALORES DE MI PUERTO Y DE LA VARIABLE QUE CONTIENE EL VALOR DE ADRESH
+                ALARMA=1; //SE ENCIENDE LA ALARMA SI LA VARIABLE TIENE UN VALOR MÁS GRANDE QUE EL CONTADOR
             }
-            if(valorADC<PORTD){
+            if(valorADC<PORTD){ //SI ES MÁS PEQUEÑO SE APAGA LA ALARMA
                 ALARMA=0;
             }
         }
     }      
     
 void Setup(void){
-    PORTA = 0;
+    PORTA = 0;//LIMPIEZA DE PUERTOS
     PORTB = 0;
     PORTC = 0;
     PORTD = 0;
     PORTE = 0;
     
-    ANSEL = 0b00000001;
+    ANSEL = 0b00000001;//INDICO EL PRIMER PIN COMO ANALOGO
     ANSELH = 0;
     
     TRISA = 0b00000001;
@@ -152,23 +152,24 @@ void Setup(void){
     TRISD = 0;
     TRISE = 0;
     OPTION_REG = 0b10000011;
-    INTCONbits.GIE = 1;
-    INTCONbits.T0IE = 1;
+    INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
+    INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;
-    INTCONbits.PEIE = 1;
-    PIE1bits.ADIE = 1;
+    INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
+    PIE1bits.ADIE = 1; //HABILILTO LAS INTERRUPCIONES DEL ADC
     PIR1bits.ADIF = 0;
     
-    IOCBbits.IOCB0 = 1;
+    IOCBbits.IOCB0 = 1;//HABILITO LOS INTERRUPTS ON CHANGE PARA LOS PUSH
     IOCBbits.IOCB1 = 1;
-    INTCONbits.RBIE = 1;
+    INTCONbits.RBIE = 1; //HABILILTO LAS INTERRUPCIONES DEL PUERTO B
     INTCONbits.RBIF = 0;    
 }
 
 
-void ADCG(void){
-    if(ADCGO > 20){
-        ADCGO = 0;
-        ADCON0bits.GO_nDONE = 1;
-    }
+void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIENTE MANERA
+    if(ADCGO > 20){ //CUANDO ADCGO SEA MÁS GRANDE QUE 20 YA QUE ESTE VA A ESTAR SUMANDOSE CONSTANTEMENTE EN LA INTERRUPCIÓN
+        ADCGO = 0; //SE SETEA EN 0 NUEVAMENTE
+        ADCON0bits.GO_nDONE = 1; //SE HABILITA EL GO DEL ADC PARA QUE LA CONFIGURACIÓN ADC FUNCIONE CORRECTAMENTE 
+    }                            //DE ESTA MANERA PUEDE VOLVER A COMENZAR NUEVAMENTE SIN PROBLEMAS
 }
+
