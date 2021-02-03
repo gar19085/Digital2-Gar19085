@@ -36,6 +36,7 @@
 
 #include "7Segmentos.h"
 #include "Oscilador.h"
+#include "ADC.h"
 
 /*
  VARIABLES
@@ -43,38 +44,44 @@
 
 #define SUM RB0
 #define RES RB1
+#define ALARMA RB7
+#define POT RA0
 
 char FLAG1;
 char FLAG2;
-char DECADA;
-
+uint8_t valorADC = 0;
+char FLG;
 
 
 /*
  FUNCIONES
  */
 void Setup(void);
-
+void displays();
 
 
 void __interrupt() isr(void){
     if (INTCONbits.TMR0IF == 1){
+        TMR0=236;   
         INTCONbits.TMR0IF = 0;
-        TMR0=236;
+        RE0 = 0;
+        RE1 = 0;
+        if(FLG == 0){
+            Display7(valorADC);
+            RE0 = 1;
+            FLG = 1;
+        }        
+        if(FLG == 1){
+            Display7(valorADC);
+            RE1 = 1;
+            FLG = 0;
+        }    
     }
-}
-
-/*
- MAIN LOOP
- */
-
-void main(void) {
-    initOsc(20);    
-    Setup();
-        while(1){
-            if(SUM == 1){
+    
+    if(INTCONbits.RBIF == 1){
+                if(SUM == 1){
                 FLAG1=1;
-            }
+                }
                 if(FLAG1 == 1 && SUM == 0){
                     FLAG1=0;
                     PORTD++;
@@ -85,12 +92,36 @@ void main(void) {
                 if(FLAG2==1 && RES==0){
                     FLAG2=0;
                     PORTD--;
-                }     
+                }   
+        INTCONbits.RBIF = 0;
+       
+    }
+    if(PIR1bits.ADIF==1){
+        valorADC = ADRESH;
+        PIR1bits.ADIF = 0;
+    }
+}
+
+/*
+ MAIN LOOP
+ */
+
+void main(void) {
+    initOsc(8);    
+    Setup();
+    initADC(1,0); 
+        while(1){
+            if(PORTC>PORTD){
+                ALARMA=1;
             }
-        }      
+            else{
+                ALARMA=0;
+            }
+                
+            }
     
-
-
+    }      
+    
 void Setup(void){
     PORTA = 0;
     PORTB = 0;
@@ -98,7 +129,7 @@ void Setup(void){
     PORTD = 0;
     PORTE = 0;
     
-    ANSEL = 0;
+    ANSEL = 0b00000001;
     ANSELH = 0;
     
     TRISA = 0b00000001;
@@ -106,5 +137,20 @@ void Setup(void){
     TRISC = 0;
     TRISD = 0;
     TRISE = 0;
+    OPTION_REG = 0b10000011;
+    INTCONbits.GIE = 1;
+    INTCONbits.T0IE = 1;
+    INTCONbits.T0IF = 0;
+    INTCONbits.PEIE = 1;
+    PIE1bits.ADIE = 1;
+    PIR1bits.ADIF = 0;
+    
+    IOCBbits.IOCB0 = 1;
+    IOCBbits.IOCB1 = 1;
+    INTCONbits.RBIE = 1;
+    INTCONbits.RBIF = 0;
+    
+    
 }
+
 
