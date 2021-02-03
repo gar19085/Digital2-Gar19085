@@ -44,12 +44,15 @@
 
 #define SUM RB0
 #define RES RB1
-#define ALARMA RB7
+#define ALARMA RE2
 #define POT RA0
 
 char FLAG1;
 char FLAG2;
 uint8_t valorADC = 0;
+uint8_t ADCGO = 0;
+uint8_t HIGH = 0;
+uint8_t LOW = 0;
 char FLG;
 
 
@@ -57,30 +60,41 @@ char FLG;
  FUNCIONES
  */
 void Setup(void);
-void displays();
+void ADCG(void);
 
 
 void __interrupt() isr(void){
     if (INTCONbits.TMR0IF == 1){
         TMR0=236;   
         INTCONbits.TMR0IF = 0;
+        ADCGO++;
         RE0 = 0;
         RE1 = 0;
         if(FLG == 0){
-            Display7(valorADC);
-            RE0 = 1;
             FLG = 1;
+            RE0 = 1;
+            RE1 = 0;
+            HIGH=valorADC;
+            HIGH=HIGH & 0b11110000;    
+            HIGH=HIGH>>4;
+            LOW=valorADC & 0b00001111;
+            Display7(HIGH);    
         }        
         if(FLG == 1){
-            Display7(valorADC);
-            RE1 = 1;
             FLG = 0;
+            RE0 = 0;
+            RE1 = 1;
+            LOW=valorADC;
+            LOW=LOW &0b00001111;
+            LOW=LOW<<4;
+            HIGH=valorADC & 0b11110000;
+            Display7(LOW);
         }    
     }
     
     if(INTCONbits.RBIF == 1){
                 if(SUM == 1){
-                FLAG1=1;
+                    FLAG1=1;
                 }
                 if(FLAG1 == 1 && SUM == 0){
                     FLAG1=0;
@@ -97,8 +111,8 @@ void __interrupt() isr(void){
        
     }
     if(PIR1bits.ADIF==1){
-        valorADC = ADRESH;
         PIR1bits.ADIF = 0;
+        valorADC = ADRESH;
     }
 }
 
@@ -110,16 +124,16 @@ void main(void) {
     initOsc(8);    
     Setup();
     initADC(1,0); 
+    Display7(valorADC);
         while(1){
-            if(PORTC>PORTD){
+            ADCG();
+            if(valorADC>PORTD){
                 ALARMA=1;
             }
-            else{
+            if(valorADC<PORTD){
                 ALARMA=0;
             }
-                
-            }
-    
+        }
     }      
     
 void Setup(void){
@@ -148,9 +162,13 @@ void Setup(void){
     IOCBbits.IOCB0 = 1;
     IOCBbits.IOCB1 = 1;
     INTCONbits.RBIE = 1;
-    INTCONbits.RBIF = 0;
-    
-    
+    INTCONbits.RBIF = 0;    
 }
 
 
+void ADCG(void){
+    if(ADCGO > 20){
+        ADCGO = 0;
+        ADCON0bits.GO_nDONE = 1;
+    }
+}
