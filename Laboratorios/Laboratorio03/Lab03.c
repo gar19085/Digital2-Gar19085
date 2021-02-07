@@ -29,7 +29,9 @@
 // Use project enums instead of #define for ON and OFF.
 
 #include <xc.h>
+#include <stdio.h>
 #include <stdint.h>
+#include <pic16f887.h>
 #include "LCD.h"
 #include "USART.h"
 #include "ADC.h"
@@ -39,52 +41,75 @@
 
 uint8_t valorPOT1 = 0;
 uint8_t valorPOT2 = 0;
-uint8_t FLAG = 1;
-uint8_t FLAG2 = 1;
+uint8_t FLAG = 0;
+uint8_t FLAG2 = 0;
+uint8_t TURN1 = 0;
+uint8_t ADCGO = 0;
+char TURN;
+char s[50];
+
+float POT;
+float VOLTAGE1;
+float VOLTAGE2;
 
 void Setup(void);
-uint8_t TOGGLEADC(uint8_t FLAG, uint8_t FLAG2);
+void ADCG(void);
+void TURNO(void);
+float INFO(uint8_t);
+void TOGGLEADC(char FLG, char FLG2, char TURN1);
 
 void __interrupt() isr(void){
-        if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC
-            TOGGLEADC(FLAG, FLAG2);
-            PIR1bits.ADIF = 0; //AL VALOR DEL ADC
+        if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC  
+            if(TURN==1){
+                valorPOT1 = ADRESH;
+                ADRESH = 0;
+            }
+            else if(TURN==2){
+                valorPOT2 = ADRESH;
+                ADRESH = 0;
+            }
+            PIR1bits.ADIF = 0; 
     }
-        if (INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
-            TMR0=236;   
+        if(INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
+            TMR0=236;  
+            TURN++;
+            ADCGO++;
             INTCONbits.TMR0IF = 0;   
         }        
 }
 
-
 void main(void) {
     initOsc(8);
     Setup();
-    LCD_init();
-    LCD_Cmd(0x8A);
+    //initADC(1,0);
     Conf_TXR();
     Conf_RXT();
-    
+    LCD_init();
+    LCD_Cmd(0x8A);
     LCD_Goto(1,1);
     LCD_Print("VOLT1");
     LCD_Goto(7,1);
     LCD_Print("VOLT2");
     LCD_Goto(13,1);
     LCD_Print("CONT");
-    
     while(1){
-        TRANSMITIR(valorPOT1);
+        TURNO();
+        TOGGLEADC(FLAG, FLAG2, TURN);        
+        VOLTAGE1 = INFO(valorPOT1);
+        VOLTAGE2 = INFO(valorPOT2);  
+        sprintf(s, "%3.2f", VOLTAGE1);    
+        TRANSMITIR(s);
         LCD_Goto(2,2);
-        LCD_Print("V1");
+        LCD_Print(s);
+        sprintf(s, "%3.2f", VOLTAGE2);   
+        TRANSMITIR(s);
         LCD_Goto(8,2);
-        LCD_Print("V2");
+        LCD_Print(s);
         LCD_Goto(14,2);
         LCD_Print("C");
   }
-
 }
     
-
 void Setup(void){
     PORTA = 0;//LIMPIEZA DE PUERTOS
     PORTB = 0;
@@ -100,7 +125,7 @@ void Setup(void){
     TRISC = 0b10000000;
     TRISD = 0;
     TRISE = 0;
-    OPTION_REG = 0b00000011;
+    OPTION_REG = 0b00000011;    
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIE1bits.ADIE = 1; //HABILILTO LAS INTERRUPCIONES DEL ADC
@@ -109,18 +134,38 @@ void Setup(void){
     INTCONbits.T0IF = 0;    
 }
 
+void TOGGLEADC(char FLG, char FLG2, char TURN1){
+    if (FLG == 1 && TURN1 == 1 && FLG2 == 0){
+        initADC(1,0);
+        ADCG();    
+    }
+    else if(FLG2 == 1 && TURN1 == 2 && FLG == 1){
+        initADC(1,1);
+        ADCG();
+    }
+}
 
-uint8_t TOGGLEADC(uint8_t FLAG, uint8_t FLAG2){
-    if (FLAG == 1){
-        initADC(0,0);
-        __delay_ms(20);
-        ADCON0bits.GO_nDONE = 1;         
-        valorPOT1 = ADRESH;
+void TURNO(){
+    if(TURN==1){
+        FLAG=1;
+        FLAG2=0;
+        TURN=2;
     }
-    else if(FLAG2 == 1){
-        initADC(0,1);
-        __delay_ms(20);
-        ADCON0bits.GO_nDONE = 1;
-        valorPOT2 = ADRESH;
+    else if(TURN==2){
+        FLAG=0;
+        FLAG2=1;
+        TURN=0;
     }
+}
+
+float INFO(uint8_t POT){
+    POT = 0.0196 * (float)POT;
+    return (POT);
+}
+
+void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIENTE MANERA
+    if(ADCGO > 20){ //CUANDO ADCGO SEA MÁS GRANDE QUE 20 YA QUE ESTE VA A ESTAR SUMANDOSE CONSTANTEMENTE EN LA INTERRUPCIÓN
+        ADCGO = 0; //SE SETEA EN 0 NUEVAMENTE
+        ADCON0bits.GO_nDONE = 1; //SE HABILITA EL GO DEL ADC PARA QUE LA CONFIGURACIÓN ADC FUNCIONE CORRECTAMENTE 
+    }                            //DE ESTA MANERA PUEDE VOLVER A COMENZAR NUEVAMENTE SIN PROBLEMAS
 }
