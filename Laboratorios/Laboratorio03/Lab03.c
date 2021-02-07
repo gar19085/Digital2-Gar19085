@@ -37,16 +37,17 @@
 #include "ADC.h"
 #include "Oscilador.h"
 
-#define _XTAL_FREQ 8000000
+#define _XTAL_FREQ 4000000
 
 uint8_t valorPOT1 = 0;
 uint8_t valorPOT2 = 0;
 uint8_t FLAG = 0;
 uint8_t FLAG2 = 0;
-uint8_t TURN1 = 0;
 uint8_t ADCGO = 0;
+uint8_t CONTADOR;
+
 char TURN;
-char s[50];
+char d[50];
 
 float POT;
 float VOLTAGE1;
@@ -55,33 +56,42 @@ float VOLTAGE2;
 void Setup(void);
 void ADCG(void);
 void TURNO(void);
-float INFO(uint8_t);
-void TOGGLEADC(char FLG, char FLG2, char TURN1);
+float INFO(uint8_t POT);
+//void TOGGLEADC(char FLG, char FLG2, char TURN1);
+
+/*
+ INTERRUPCIONES
+ */
 
 void __interrupt() isr(void){
         if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC  
-            if(TURN==1){
+            if(TURN==0){
                 valorPOT1 = ADRESH;
-                ADRESH = 0;
+                initADC(1,0);
+                TURN=1;
             }
-            else if(TURN==2){
+            else if(TURN==1){
                 valorPOT2 = ADRESH;
-                ADRESH = 0;
+                initADC(1,1);
+                TURN = 0;
             }
             PIR1bits.ADIF = 0; 
     }
+        if(PIR1bits.RCIF == 1){
+            CONTADOR = RCREG;
+        }
         if(INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
             TMR0=236;  
-            TURN++;
             ADCGO++;
             INTCONbits.TMR0IF = 0;   
         }        
 }
-
+/*
+ MAIN LOOP
+ */
 void main(void) {
     initOsc(8);
     Setup();
-    //initADC(1,0);
     Conf_TXR();
     Conf_RXT();
     LCD_init();
@@ -92,24 +102,27 @@ void main(void) {
     LCD_Print("VOLT2");
     LCD_Goto(13,1);
     LCD_Print("CONT");
-    while(1){
-        TURNO();
-        TOGGLEADC(FLAG, FLAG2, TURN);        
+    while(1){ 
+        ADCG();
         VOLTAGE1 = INFO(valorPOT1);
         VOLTAGE2 = INFO(valorPOT2);  
-        sprintf(s, "%3.2f", VOLTAGE1);    
-        TRANSMITIR(s);
+        sprintf(d, "%3.2f", VOLTAGE1);    
+        TRANSMITIR(d);
         LCD_Goto(2,2);
-        LCD_Print(s);
-        sprintf(s, "%3.2f", VOLTAGE2);   
-        TRANSMITIR(s);
+        LCD_Print(d);
+        sprintf(d, "%3.2f", VOLTAGE2);   
+        TRANSMITIR(d);
         LCD_Goto(8,2);
-        LCD_Print(s);
+        LCD_Print(d);
         LCD_Goto(14,2);
         LCD_Print("C");
   }
 }
     
+/*
+ CONFIGURACIÓN PRINCIPAL
+ */
+
 void Setup(void){
     PORTA = 0;//LIMPIEZA DE PUERTOS
     PORTB = 0;
@@ -132,8 +145,9 @@ void Setup(void){
     PIR1bits.ADIF = 0;
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;    
+    PIE1bits.RCIE = 1;    
 }
-
+/*
 void TOGGLEADC(char FLG, char FLG2, char TURN1){
     if (FLG == 1 && TURN1 == 1 && FLG2 == 0){
         initADC(1,0);
@@ -144,24 +158,19 @@ void TOGGLEADC(char FLG, char FLG2, char TURN1){
         ADCG();
     }
 }
-
-void TURNO(){
-    if(TURN==1){
-        FLAG=1;
-        FLAG2=0;
-        TURN=2;
-    }
-    else if(TURN==2){
-        FLAG=0;
-        FLAG2=1;
-        TURN=0;
-    }
-}
+*/
+/*
+ MAPEO DE INFORMACIÓN
+ */
 
 float INFO(uint8_t POT){
     POT = 0.0196 * (float)POT;
     return (POT);
 }
+
+/*
+ DELAY DE ADQUISICION
+ */
 
 void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIENTE MANERA
     if(ADCGO > 20){ //CUANDO ADCGO SEA MÁS GRANDE QUE 20 YA QUE ESTE VA A ESTAR SUMANDOSE CONSTANTEMENTE EN LA INTERRUPCIÓN
@@ -169,3 +178,4 @@ void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIEN
         ADCON0bits.GO_nDONE = 1; //SE HABILITA EL GO DEL ADC PARA QUE LA CONFIGURACIÓN ADC FUNCIONE CORRECTAMENTE 
     }                            //DE ESTA MANERA PUEDE VOLVER A COMENZAR NUEVAMENTE SIN PROBLEMAS
 }
+
