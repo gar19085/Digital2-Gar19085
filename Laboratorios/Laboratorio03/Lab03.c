@@ -58,19 +58,28 @@ void __interrupt() isr(void){
 
 
 void main(void) {
-    TRISD=0x00;
     initOsc(8);
     Setup();
     LCD_init();
     LCD_Cmd(0x8A);
     Conf_TXR();
     Conf_RXT();
-       unsigned int a;
+    
+    LCD_Goto(1,1);
+    LCD_Print("VOLT1");
+    LCD_Goto(7,1);
+    LCD_Print("VOLT2");
+    LCD_Goto(13,1);
+    LCD_Print("CONT");
+    
     while(1){
         TRANSMITIR(valorPOT1);
-    LCD_Goto(1,1);
-    LCD_Print("LCD Library for");
-
+        LCD_Goto(2,2);
+        LCD_Print("V1");
+        LCD_Goto(8,2);
+        LCD_Print("V2");
+        LCD_Goto(14,2);
+        LCD_Print("C");
   }
 
 }
