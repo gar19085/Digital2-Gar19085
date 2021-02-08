@@ -45,18 +45,33 @@ uint8_t FLAG = 0;
 uint8_t FLAG2 = 0;
 uint8_t ADCGO = 0;
 uint8_t CONTADOR;
+uint8_t CONT = 0;
 
-char TURN;
-char d[50];
 
-float POT;
-float VOLTAGE1;
-float VOLTAGE2;
+int CONT1;
+int CONT2;
+int CONT3;
+int POT1;
+int POT12;
+int POT13;
+int POT2;
+int POT22;
+int POT23;
+char TURN = 0;
+char FLG1;
+char FLG2;
+char VOLTAGE1;
+char VOLTAGE2;
 
 void Setup(void);
 void ADCG(void);
 void TURNO(void);
-float INFO(uint8_t POT);
+void INFOCONT(void);
+void INFOADC1(void);
+void INFOADC2(void);
+const char* STRING(char C1, char C2, char C3);
+const char* STRINGPOT1(char C1, char C2, char C3);
+const char* STRINGPOT2(char C1, char C2, char C3);
 //void TOGGLEADC(char FLG, char FLG2, char TURN1);
 
 /*
@@ -65,30 +80,23 @@ float INFO(uint8_t POT);
 
 void __interrupt() isr(void){
         if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC  
-            if(TURN==0){
-                valorPOT1 = ADRESH;
-                initADC(1,0);
-                TURN=1;
-            }
-            else if(TURN==1){
-                valorPOT2 = ADRESH;
-                initADC(1,1);
-                TURN = 0;
-            }
             PIR1bits.ADIF = 0; 
     }
-        if(PIR1bits.RCIF == 1){
-            CONTADOR = RCREG;
-        }
+        if(PIR1bits.RCIF == 1){       
+            CONTADOR = RCREG;        
+    }
+        
         if(INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
             TMR0=236;  
-            ADCGO++;
+            ADCGO++;                        
             INTCONbits.TMR0IF = 0;   
         }        
-}
+} 
+
 /*
  MAIN LOOP
  */
+
 void main(void) {
     initOsc(8);
     Setup();
@@ -102,20 +110,55 @@ void main(void) {
     LCD_Print("VOLT2");
     LCD_Goto(13,1);
     LCD_Print("CONT");
-    while(1){ 
-        ADCG();
-        VOLTAGE1 = INFO(valorPOT1);
-        VOLTAGE2 = INFO(valorPOT2);  
-        sprintf(d, "%3.2f", VOLTAGE1);    
-        TRANSMITIR(d);
+    while(1){
+            if(TURN==0){
+                valorPOT1 = ADRESH;
+                initADC(1,0);
+                TURN=1;
+            }
+            else if(TURN==1){
+                valorPOT2 = ADRESH;
+                initADC(1,1);
+                TURN = 0;
+            }                
+        ADCG();      
+        INFOCONT();
+        INFOADC1();
+        INFOADC2();
+        VOLTAGE1 = valorPOT1;
+        VOLTAGE2 = valorPOT2;  
+        TRANSMITIR(POT1);
+        TRANSMITIR(POT12);
+        TRANSMITIR(POT13);
         LCD_Goto(2,2);
-        LCD_Print(d);
-        sprintf(d, "%3.2f", VOLTAGE2);   
-        TRANSMITIR(d);
+        LCD_Print(STRINGPOT1(POT1, POT12, POT13));
+        TRANSMITIR(POT2);
+        TRANSMITIR(POT22);
+        TRANSMITIR(POT23);
         LCD_Goto(8,2);
-        LCD_Print(d);
+        LCD_Print(STRINGPOT2(POT2, POT22, POT23));
+        LCD_Goto(6,2);
+        LCD_Print("V");
+        LCD_Goto(12,2);
+        LCD_Print("V");
+                if(CONTADOR==0x2b){ 
+                    FLG1=1; //SE ACTIVA MI BANDERA
+                }
+                if(FLG1 == 1 && CONTADOR != 0x2b){ 
+                    FLG1=0; //SE APAGA EL FLAG1
+                    PORTB++;
+                    CONT++;
+                }     
+                if(CONTADOR==0x2d){ //MISMO PROCEDIMIENTO SOLO QUE ESTE RESTA VALORES AL CONTADOR
+                    FLG2=1;
+                }
+                if(FLG2==1 && CONTADOR != 0x2d){
+                    FLG2=0;
+                    PORTB--;
+                    CONT--;
+                }          
         LCD_Goto(14,2);
-        LCD_Print("C");
+        LCD_Print(STRING(CONT1, CONT2, CONT3));  
   }
 }
     
@@ -145,27 +188,63 @@ void Setup(void){
     PIR1bits.ADIF = 0;
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;    
-    PIE1bits.RCIE = 1;    
 }
-/*
-void TOGGLEADC(char FLG, char FLG2, char TURN1){
-    if (FLG == 1 && TURN1 == 1 && FLG2 == 0){
-        initADC(1,0);
-        ADCG();    
-    }
-    else if(FLG2 == 1 && TURN1 == 2 && FLG == 1){
-        initADC(1,1);
-        ADCG();
-    }
-}
-*/
+
 /*
  MAPEO DE INFORMACIÓN
  */
 
-float INFO(uint8_t POT){
-    POT = 0.0196 * (float)POT;
-    return (POT);
+void INFOCONT(void){
+    CONT1 = CONT/100;
+    CONT2 = ((CONT-(CONT1*100))/10);
+    CONT3 = (CONT-(CONT1*100))-(CONT2*10);
+    CONT1 = CONT1+0x30;
+    CONT2 = CONT2+0x30;
+    CONT3 = CONT3+0x30;
+}
+
+const char* STRING(char C1, char C2, char C3){
+    char TEMP[3];
+    TEMP[0] = C1;
+    TEMP[1] = C2;
+    TEMP[2] = C3;
+    return TEMP;
+}
+
+void INFOADC1(void){
+    POT1 = VOLTAGE1/51;
+    POT12 = (VOLTAGE1-(POT1*51))/10;
+    POT13 = (VOLTAGE1-(POT1*51))-(POT12*10);
+    POT1 = POT1+0x30;
+    POT12 = POT12+0x30;
+    POT13 = POT13+0x30;
+}
+
+const char* STRINGPOT1(char C1, char C2, char C3){
+    char TEMP[4];
+    TEMP[0] = C1;
+    TEMP[1] = 0x2E;    
+    TEMP[2] = C2;
+    TEMP[3] = C3;
+    return TEMP;
+}
+
+void INFOADC2(void){
+    POT2 = VOLTAGE2/51;
+    POT22 = (VOLTAGE2-(POT2*51))/10;
+    POT23 = (VOLTAGE2-(POT2*51))-(POT22*10);
+    POT2 = POT2+0x30;
+    POT22 = POT22+0x30;
+    POT23 = POT23+0x30;
+}
+
+const char* STRINGPOT2(char C1, char C2, char C3){
+    char TEMP[4];
+    TEMP[0] = C1;
+    TEMP[1] = 0x2E;
+    TEMP[2] = C2;
+    TEMP[3] = C3;
+    return TEMP;
 }
 
 /*
@@ -178,4 +257,5 @@ void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIEN
         ADCON0bits.GO_nDONE = 1; //SE HABILITA EL GO DEL ADC PARA QUE LA CONFIGURACIÓN ADC FUNCIONE CORRECTAMENTE 
     }                            //DE ESTA MANERA PUEDE VOLVER A COMENZAR NUEVAMENTE SIN PROBLEMAS
 }
+
 

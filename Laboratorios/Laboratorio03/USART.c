@@ -1,9 +1,3 @@
-/*
- * File:   USART.c
- * Author:  RODRIGO GARCIA
- *
- * Created on 4 de febrero de 2021, 05:36 PM
- */
 
 
 #include <xc.h>
@@ -32,15 +26,6 @@ void Conf_RXT(void){
 }
 
 void TRANSMITIR(char *VAL){
-    INTCONbits.GIE = 1;
-    TXREG = VAL[0];
-    while(TRMT == 0){}
-    TXREG = VAL[1];
-    while(TRMT == 0){}
-    TXREG = VAL[2];
-    while(TRMT == 0){}
-    TXREG = VAL[3];
-    while(TRMT == 0){}
-    TXREG = 0x20;
-    while(TRMT == 0){}
+    TXREG = VAL;
+    TXREG = 0x2E;
 }
