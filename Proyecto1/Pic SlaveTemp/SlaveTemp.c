@@ -34,7 +34,70 @@
 #include <stdint.h>
 #include "Oscilador.h"
 #include "ADC.h"
+#include "SPI.h"
+
+uint8_t TEMP;
+uint8_t ADCGO;
+
+void Setup(void);
+void ADCG(void);
+
+void __interrupt() isr(void){
+    if(PIR1bits.SSPIF == 1){
+        spiWrite(TEMP);
+        PIR1bits.SSPIF = 0;
+    }
+    if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC
+        PIR1bits.ADIF = 0;
+        TEMP = ADRESH; //LE INDICO A MI VARIABLE valorADC EL VALRO DE ADRESH QUE CORRESPONDE
+                           //AL VALOR DEL ADC
+    }    
+    if (INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
+        TMR0=236;   
+        INTCONbits.TMR0IF = 0;
+        ADCGO++; //SE VA SUMANDO CADA VEZ ESTA VARIABLE YA QUE ES UN DELAY DE ADQUISICIÓN EXTRA
+    }
+}
 
 void main(void) {
+    initOsc(8);
+    Setup();
+    initADC(1,0);
+    while(1){
+        ADCG();
+    }
+}
 
+void Setup(void){
+    PORTA = 0;//LIMPIEZA DE PUERTOS
+    PORTB = 0;
+    PORTC = 0;
+    PORTD = 0;
+    PORTE = 0;    
+    
+    ANSEL = 0b00000001;//INDICO EL PRIMER PIN COMO ANALOGO
+    ANSELH = 0;   
+    
+    TRISA = 0b00100001;
+    TRISB = 0;
+    TRISC = 0b00001000;
+    TRISD = 0;
+    TRISE = 0;    
+    spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE); 
+    INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
+    INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
+    INTCONbits.T0IF = 0;
+    INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
+    PIE1bits.ADIE = 1; //HABILILTO LAS INTERRUPCIONES DEL ADC
+    PIR1bits.ADIF = 0;   
+    PIR1bits.SSPIF = 0;
+    PIE1bits.SSPIE = 1;    
+}
+
+
+void ADCG(void){//GENERO UN DELAY DE ADQUISICIÓN EL CUAL FUNCIONA DE LA SIGUIENTE MANERA
+    if(ADCGO > 20){ //CUANDO ADCGO SEA MÁS GRANDE QUE 20 YA QUE ESTE VA A ESTAR SUMANDOSE CONSTANTEMENTE EN LA INTERRUPCIÓN
+        ADCGO = 0; //SE SETEA EN 0 NUEVAMENTE
+        ADCON0bits.GO_nDONE = 1; //SE HABILITA EL GO DEL ADC PARA QUE LA CONFIGURACIÓN ADC FUNCIONE CORRECTAMENTE 
+    }                            //DE ESTA MANERA PUEDE VOLVER A COMENZAR NUEVAMENTE SIN PROBLEMAS
 }

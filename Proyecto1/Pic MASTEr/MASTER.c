@@ -38,14 +38,26 @@
 
 #define _XTAL_FREQ 4000000
 
+
+int CONT1;
+int CONT2;
+int CONT3;
+int ADC1;
+int ADC12;
+int ADC13;
 uint8_t CLN;
 uint8_t valorADC;
 uint8_t CONTADOR;
+uint8_t TEMP;
 
 void Setup(void);
 void SlaveADC(void);
 void SlaveCont(void);
 void SlaveTemp(void);
+void INFOCONT(void);
+const char* STRINGCONT(char C1, char C2, char C3);
+void INFOADC(void);
+const char* STRINGADC(char C1, char C2, char C3);
 
 void main(void) {
     initOsc(8);
@@ -63,7 +75,14 @@ void main(void) {
     LCD_Print("TEMP");    
     while(1){
         SlaveADC();
+        INFOADC();
         SlaveCont();
+        INFOCONT();
+        SlaveTemp();
+        LCD_Goto(2,2);
+        LCD_Print(STRINGADC(ADC1, ADC12, ADC13));
+        LCD_Goto(8,2);
+        LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
     }
 }
 
@@ -109,5 +128,48 @@ void SlaveCont(void){
 }
 
 void SlaveTemp(void){
+    PORTAbits.RA2 = 0;
+    __delay_ms(1);
     
+    spiWrite(CLN);
+    TEMP = spiRead();
+    
+    __delay_ms(1);
+    PORTAbits.RA2 = 1;   
+}
+
+
+void INFOCONT(void){
+    CONT1 = CONTADOR/100;
+    CONT2 = ((CONTADOR-(CONT1*100))/10);
+    CONT3 = (CONTADOR-(CONT1*100))-(CONT2*10);
+    CONT1 = CONT1+0x30;
+    CONT2 = CONT2+0x30;
+    CONT3 = CONT3+0x30;
+}
+
+const char* STRINGCONT(char C1, char C2, char C3){
+    char TEMP[3];
+    TEMP[0] = C1;
+    TEMP[1] = C2;
+    TEMP[2] = C3;
+    return TEMP;
+}
+
+void INFOADC(void){
+    ADC1 = valorADC/51;
+    ADC12 = (valorADC-(ADC1*51))/10;
+    ADC13 = (valorADC-(ADC1*51))-(ADC12*10);
+    ADC1 = ADC1+0x30;
+    ADC12 = ADC12+0x30;
+    ADC13 = ADC13+0x30;
+}
+
+const char* STRINGADC(char C1, char C2, char C3){
+    char TEMP[4];
+    TEMP[0] = C1;
+    TEMP[1] = 0x2E;    
+    TEMP[2] = C2;
+    TEMP[3] = C3;
+    return TEMP;
 }
