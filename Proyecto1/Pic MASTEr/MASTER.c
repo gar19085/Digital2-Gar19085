@@ -34,16 +34,20 @@
 #include "LCD.h"
 #include "Oscilador.h"
 #include "USART.h"
+#include "SPI.h"
 
 
 void Setup(void);
-
+void SlaveADC(void);
+void SlaveCont(void);
+void SlaveTemp(void);
 
 void main(void) {
     initOsc(8);
     Setup();
     Conf_TXR();
     Conf_RXT();
+    spiInit(SPI_MASTER_OSC_DIV4, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);
     LCD_init();   
     LCD_Cmd(0x8A);
     LCD_Goto(1,1);
@@ -52,6 +56,9 @@ void main(void) {
     LCD_Print("CONT");
     LCD_Goto(13,1);
     LCD_Print("TEMP");    
+    while(1){
+        
+    }
 }
 
 
@@ -68,7 +75,19 @@ void Setup(){
     
     TRISA = 0;
     TRISB = 0;
-    TRISC = 0b10000000;
+    TRISC = 0b00010000;
     TRISD = 0;
     TRISE = 0; 
+}
+
+void SlaveADC(void){
+    
+}
+
+void SlaveCont(void){
+    
+}
+
+void SlaveTemp(void){
+    
 }

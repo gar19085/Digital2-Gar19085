@@ -34,8 +34,9 @@
 #include <stdint.h>
 #include "Oscilador.h"
 #include "ADC.h"
+#include "SPI.h"
 
-uint8_t valorADC = 0;
+uint8_t valorADC;
 uint8_t ADCGO = 0;
 
 
@@ -43,11 +44,21 @@ void Setup(void);
 void ADCG(void);
 
 void __interrupt() isr(void){
+    if(PIR1bits.SSPIF == 1){
+        spiWrite(valorADC);
+        PIR1bits.SSPIF = 0;
+    }
+    
     if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC
         PIR1bits.ADIF = 0;
         valorADC = ADRESH; //LE INDICO A MI VARIABLE valorADC EL VALRO DE ADRESH QUE CORRESPONDE
                            //AL VALOR DEL ADC
     }    
+    if (INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
+        TMR0=236;   
+        INTCONbits.TMR0IF = 0;
+        ADCGO++; //SE VA SUMANDO CADA VEZ ESTA VARIABLE YA QUE ES UN DELAY DE ADQUISICIÓN EXTRA
+    }
 }
 
 
@@ -55,8 +66,10 @@ void main(void) {
     initOsc(8);
     Setup();
     initADC(1,0);
+    spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);
     while(1){
-        valorADC = PORTD;
+        ADCG();
+        PORTD = valorADC;
     }
 }
 
@@ -82,6 +95,8 @@ void Setup(void){
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIE1bits.ADIE = 1; //HABILILTO LAS INTERRUPCIONES DEL ADC
     PIR1bits.ADIF = 0;   
+    PIR1bits.SSPIF = 0;
+    PIE1bits.SSPIE = 1;
 
 }
 
