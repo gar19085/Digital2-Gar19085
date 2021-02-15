@@ -36,6 +36,11 @@
 #include "USART.h"
 #include "SPI.h"
 
+#define _XTAL_FREQ 4000000
+
+uint8_t CLN;
+uint8_t valorADC;
+uint8_t CONTADOR;
 
 void Setup(void);
 void SlaveADC(void);
@@ -57,7 +62,8 @@ void main(void) {
     LCD_Goto(13,1);
     LCD_Print("TEMP");    
     while(1){
-        
+        SlaveADC();
+        SlaveCont();
     }
 }
 
@@ -81,11 +87,25 @@ void Setup(){
 }
 
 void SlaveADC(void){
+    PORTAbits.RA0 = 0;
+    __delay_ms(1);
     
+    spiWrite(CLN);
+    valorADC = spiRead();
+    
+    __delay_ms(1);
+    PORTAbits.RA0 = 1;
 }
 
 void SlaveCont(void){
+    PORTAbits.RA1 = 0;
+    __delay_ms(1);
     
+    spiWrite(CLN);
+    CONTADOR = spiRead();
+    
+    __delay_ms(1);
+    PORTAbits.RA1 = 1;    
 }
 
 void SlaveTemp(void){

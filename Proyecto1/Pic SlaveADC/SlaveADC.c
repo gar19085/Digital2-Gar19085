@@ -36,7 +36,7 @@
 #include "ADC.h"
 #include "SPI.h"
 
-uint8_t valorADC;
+uint8_t valorADC = 0;
 uint8_t ADCGO = 0;
 
 
@@ -48,7 +48,6 @@ void __interrupt() isr(void){
         spiWrite(valorADC);
         PIR1bits.SSPIF = 0;
     }
-    
     if(PIR1bits.ADIF==1){ //CONFIGURACIÓN PARA LAS INTERRUPCIONES DEL ADC
         PIR1bits.ADIF = 0;
         valorADC = ADRESH; //LE INDICO A MI VARIABLE valorADC EL VALRO DE ADRESH QUE CORRESPONDE
@@ -66,7 +65,6 @@ void main(void) {
     initOsc(8);
     Setup();
     initADC(1,0);
-    spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);
     while(1){
         ADCG();
         PORTD = valorADC;
@@ -83,12 +81,13 @@ void Setup(void){
     ANSEL = 0b00000001;//INDICO EL PRIMER PIN COMO ANALOGO
     ANSELH = 0;
     
-    TRISA = 0b00000001;
-    TRISB = 0,
-    TRISC = 0;
+    TRISA = 0b00100001;
+    TRISB = 0;
+    TRISC = 0b00001000;
     TRISD = 0;
     TRISE = 0;
-    OPTION_REG = 0b00000011;
+    OPTION_REG = 0b10000011;
+    spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);    
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;

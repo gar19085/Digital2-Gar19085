@@ -34,6 +34,7 @@
 #include <xc.h>
 #include <stdint.h>
 #include "Oscilador.h"
+#include "SPI.h"
 
 #define SUM RB0
 #define RES RB1
@@ -44,6 +45,10 @@ void Setup(void);
 
 
 void __interrupt() isr(void){
+    if(PIR1bits.SSPIF == 1){
+        spiWrite(PORTD);
+        PIR1bits.SSPIF = 0;
+    }    
     if(INTCONbits.RBIF == 1){ //CONFIGURACIÓN DE INTERRUPCIÓN EN EL PUERTOB
                 if(SUM == 1){ //SI MI PUSH BUTTON DE SUMA ESTA EN 1
                     FLAG1=1; //SE ACTIVA MI BANDERA
@@ -68,7 +73,7 @@ void __interrupt() isr(void){
 
 void main(void) {
     initOsc(8);
-    Setup();
+    Setup();    
 }
 
 void Setup(void){
@@ -81,12 +86,13 @@ void Setup(void){
     ANSEL = 0;//INDICO EL PRIMER PIN COMO ANALOGO
     ANSELH = 0;
     
-    TRISA = 0;
+    TRISA = 0b00100000;
     TRISB = 0b00000011;
-    TRISC = 0;
+    TRISC = 0b00001000;
     TRISD = 0;
     TRISE = 0;
     OPTION_REG = 0b00000011;
+    spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);    
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;
@@ -96,4 +102,6 @@ void Setup(void){
     IOCBbits.IOCB1 = 1;
     INTCONbits.RBIE = 1; //HABILILTO LAS INTERRUPCIONES DEL PUERTO B
     INTCONbits.RBIF = 0;    
+    PIR1bits.SSPIF = 0;
+    PIE1bits.SSPIE = 1;    
 }
