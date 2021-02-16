@@ -36,7 +36,7 @@
 #include "ADC.h"
 #include "SPI.h"
 
-uint8_t TEMP;
+uint8_t TEMP = 0;
 uint8_t ADCGO;
 
 void Setup(void);
@@ -51,6 +51,7 @@ void __interrupt() isr(void){
         PIR1bits.ADIF = 0;
         TEMP = ADRESH; //LE INDICO A MI VARIABLE valorADC EL VALRO DE ADRESH QUE CORRESPONDE
                            //AL VALOR DEL ADC
+
     }    
     if (INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
         TMR0=236;   
@@ -65,6 +66,7 @@ void main(void) {
     initADC(1,0);
     while(1){
         ADCG();
+        PORTB = TEMP;
     }
 }
 
@@ -83,6 +85,7 @@ void Setup(void){
     TRISC = 0b00001000;
     TRISD = 0;
     TRISE = 0;    
+    OPTION_REG = 0b10000011;
     spiInit(SPI_SLAVE_SS_EN, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE); 
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0

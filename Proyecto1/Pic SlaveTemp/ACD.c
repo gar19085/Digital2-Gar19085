@@ -1,10 +1,9 @@
 /*
- * File:   Contador.c
+ * File:   ADC.c
  * Author: RODRIGO GARCIA
  *
- * Created on 1 de febrero de 2021, 09:52 PM
+ * Created on 11 de febrero de 2021, 05:13 PM
  */
-
 
 /*
  INCLUIR LIBRERIAS CREADAS
@@ -12,7 +11,6 @@
 
 #include <xc.h>
 #include <stdint.h>
-#include <pic16f887.h>
 #include "ADC.h"
 
 
@@ -90,4 +88,6 @@ void initADC(uint8_t frec, uint8_t can){
     ADCON0bits.GO = 0; //CONVERSIÓN STATUS BIT EN 0
     ADCON0bits.ADON = 1; //ENABLE BIT DEL ADC EN 1
     ADCON1=1;
+    ADCON1bits.VCFG0 = 1; 
+    ADCON1bits.VCFG1 = 1;
 }

@@ -39,31 +39,47 @@
 #define _XTAL_FREQ 4000000
 
 
-int CONT1;
-int CONT2;
-int CONT3;
-int ADC1;
-int ADC12;
-int ADC13;
+uint8_t CONT1;
+uint8_t CONT2;
+uint8_t CONT3;
+uint8_t ADC1;
+uint8_t ADC12;
+uint8_t ADC13;
+uint8_t TEM1;
+uint8_t TEM2;
+uint8_t TEM3;
 uint8_t CLN;
 uint8_t valorADC;
 uint8_t CONTADOR;
 uint8_t TEMP;
+uint8_t SND;
+uint8_t TGLTX;
 
 void Setup(void);
 void SlaveADC(void);
 void SlaveCont(void);
 void SlaveTemp(void);
+void SEND(void);
 void INFOCONT(void);
 const char* STRINGCONT(char C1, char C2, char C3);
 void INFOADC(void);
 const char* STRINGADC(char C1, char C2, char C3);
+void INFOTEMP(void);
+
+void __interrupt() isr(void){
+    if(PIR1bits.TXIF == 1){
+        SEND();
+        SND++;
+        PIE1bits.TXIE = 0;
+        PIR1bits.TXIF = 0;
+    }
+}
 
 void main(void) {
-    initOsc(8);
-    Setup();
-    Conf_TXR();
+    initOsc(8);    
+    Conf_TXR();    
     Conf_RXT();
+    Setup();
     spiInit(SPI_MASTER_OSC_DIV4, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);
     LCD_init();   
     LCD_Cmd(0x8A);
@@ -72,8 +88,9 @@ void main(void) {
     LCD_Goto(7,1);
     LCD_Print("CONT");
     LCD_Goto(13,1);
-    LCD_Print("TEMP");    
+    LCD_Print("TEMP");     
     while(1){
+        TGLTX++;
         SlaveADC();
         INFOADC();
         SlaveCont();
@@ -83,10 +100,12 @@ void main(void) {
         LCD_Print(STRINGADC(ADC1, ADC12, ADC13));
         LCD_Goto(8,2);
         LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
+        if (TGLTX > 10){
+            PIE1bits.TXIE = 1;
+            TGLTX = 0;
+        }        
     }
 }
-
-
 
 void Setup(){
     PORTA = 0;//LIMPIEZA DE PUERTOS
@@ -103,6 +122,10 @@ void Setup(){
     TRISC = 0b00010000;
     TRISD = 0;
     TRISE = 0; 
+    INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
+    INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
+    PIR1bits.TXIF = 0;
+    PIE1bits.TXIE = 1; 
 }
 
 void SlaveADC(void){
@@ -140,9 +163,9 @@ void SlaveTemp(void){
 
 
 void INFOCONT(void){
-    CONT1 = CONTADOR/100;
-    CONT2 = ((CONTADOR-(CONT1*100))/10);
-    CONT3 = (CONTADOR-(CONT1*100))-(CONT2*10);
+    CONT1 = TEMP/100;
+    CONT2 = ((TEMP-(CONT1*100))/10);
+    CONT3 = (TEMP-(CONT1*100))-(CONT2*10);
     CONT1 = CONT1+0x30;
     CONT2 = CONT2+0x30;
     CONT3 = CONT3+0x30;
@@ -172,4 +195,59 @@ const char* STRINGADC(char C1, char C2, char C3){
     TEMP[2] = C2;
     TEMP[3] = C3;
     return TEMP;
+}
+
+void INFOTEMP(void){
+
+}
+
+void SEND (void){
+    switch(SND){
+        case 0:
+            TXREG = 0x28;
+            break;
+        case 1:
+            TXREG = ADC1;
+            break;
+        case 2:
+            TXREG = 0x2E;
+            break;    
+        case 3:
+            TXREG = ADC12;
+            break;    
+        case 4:
+            TXREG = ADC13;
+            break;    
+        case 5:
+            TXREG = 0x29;
+            break;    
+        case 6:
+            TXREG = 0x2C;
+            break;    
+        case 7:
+            TXREG = 0x28;
+            break;
+        case 8:
+            TXREG = CONT1;
+            break;    
+        case 9:
+            TXREG = CONT2;
+            break;    
+        case 10:
+            TXREG = CONT3;
+            break;       
+        case 11:
+            TXREG = 0x29;
+            break;       
+        case 12:
+            TXREG = 0x2C;
+            break;        
+        case 13:
+            TXREG = 0x28;
+            break;        
+        case 14:
+            TXREG = 0x29;
+            SND = 0;
+            break;                    
+    }
 }
