@@ -51,7 +51,7 @@ uint8_t TEM3;
 uint8_t CLN;
 uint8_t valorADC;
 uint8_t CONTADOR;
-uint8_t TEMP;
+uint8_t Temp;
 uint8_t SND;
 uint8_t TGLTX;
 
@@ -64,7 +64,11 @@ void INFOCONT(void);
 const char* STRINGCONT(char C1, char C2, char C3);
 void INFOADC(void);
 const char* STRINGADC(char C1, char C2, char C3);
-void INFOTEMP(void);
+void INFOTEMPP(void);
+void INFOTEMPN(void);
+void CONTROLTEMP(void);
+const char* STRINGTEMPP(char C1, char C2, char C3);
+const char* STRINGTEMPN(char C1, char C2, char C3);
 
 void __interrupt() isr(void){
     if(PIR1bits.TXIF == 1){
@@ -100,6 +104,8 @@ void main(void) {
         LCD_Print(STRINGADC(ADC1, ADC12, ADC13));
         LCD_Goto(8,2);
         LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
+        LCD_Goto(13,2);
+        INFOTEMPP();
         if (TGLTX > 10){
             PIE1bits.TXIE = 1;
             TGLTX = 0;
@@ -155,7 +161,7 @@ void SlaveTemp(void){
     __delay_ms(1);
     
     spiWrite(CLN);
-    TEMP = spiRead();
+    Temp = spiRead();
     
     __delay_ms(1);
     PORTAbits.RA2 = 1;   
@@ -163,9 +169,9 @@ void SlaveTemp(void){
 
 
 void INFOCONT(void){
-    CONT1 = TEMP/100;
-    CONT2 = ((TEMP-(CONT1*100))/10);
-    CONT3 = (TEMP-(CONT1*100))-(CONT2*10);
+    CONT1 = CONTADOR/100;
+    CONT2 = ((CONTADOR-(CONT1*100))/10);
+    CONT3 = (CONTADOR-(CONT1*100))-(CONT2*10);
     CONT1 = CONT1+0x30;
     CONT2 = CONT2+0x30;
     CONT3 = CONT3+0x30;
@@ -197,8 +203,62 @@ const char* STRINGADC(char C1, char C2, char C3){
     return TEMP;
 }
 
-void INFOTEMP(void){
+void INFOTEMPP(void){
+    if (Temp >= 65){
+    Temp = ((Temp-66)*150)/190;
+    TEM1 = Temp/100;
+    TEM2 = (Temp-(TEM1*100))/10;
+    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
+    TEM1 = TEM1+0x30;
+    TEM2 = TEM2+0x30;
+    TEM3 = TEM3+0x30;
+    LCD_Print(STRINGTEMPP(TEM1, TEM2, TEM3));    
+    }
+    else if (Temp < 65){
+    Temp = ((Temp-65)*55)/65;
+    TEM1 = Temp/100;
+    TEM2 = (Temp-(TEM1*100))/10;
+    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
+    TEM1 = TEM1+0x30;
+    TEM2 = TEM2+0x30;
+    TEM3 = TEM3+0x30;    
+    LCD_Print(STRINGTEMPN(TEM1, TEM2, TEM3));
+    }
+}
+//void INFOTEMPN(void){
+//    Temp = ((Temp-65)*55)/65;
+//    TEM1 = Temp/100;
+//    TEM2 = (Temp-(TEM1*100))/10;
+//    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
+//    TEM1 = TEM1+0x30;
+//    TEM2 = TEM2+0x30;
+//    TEM3 = TEM3+0x30;
+//}
+//void CONTROLTEMP(void){
+//    if(Temp >= 65){
+//        INFOTEMPP();
+//    }
+//    else if(Temp < 65){
+//        INFOTEMPN();
+//    }
+//}
 
+const char* STRINGTEMPP(char C1, char C2, char C3){
+    char TEMP[4];
+    TEMP[0] = 0x2B;
+    TEMP[1] = C1;   
+    TEMP[2] = C2;
+    TEMP[3] = C3;
+    return TEMP;
+}
+
+const char* STRINGTEMPN(char C1, char C2, char C3){
+    char TEMP[5];
+    TEMP[0] = 0x2D;
+    TEMP[1] = C1;   
+    TEMP[2] = C2;
+    TEMP[3] = C3;
+    return TEMP;
 }
 
 void SEND (void){
