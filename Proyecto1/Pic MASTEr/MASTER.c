@@ -105,7 +105,7 @@ void main(void) {
         LCD_Goto(8,2);
         LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
         LCD_Goto(13,2);
-        INFOTEMPP();
+        CONTROLTEMP();
         if (TGLTX > 10){
             PIE1bits.TXIE = 1;
             TGLTX = 0;
@@ -204,7 +204,6 @@ const char* STRINGADC(char C1, char C2, char C3){
 }
 
 void INFOTEMPP(void){
-    if (Temp >= 65){
     Temp = ((Temp-66)*150)/190;
     TEM1 = Temp/100;
     TEM2 = (Temp-(TEM1*100))/10;
@@ -213,35 +212,26 @@ void INFOTEMPP(void){
     TEM2 = TEM2+0x30;
     TEM3 = TEM3+0x30;
     LCD_Print(STRINGTEMPP(TEM1, TEM2, TEM3));    
-    }
-    else if (Temp < 65){
+}
+void INFOTEMPN(void){
     Temp = ((Temp-65)*55)/65;
     TEM1 = Temp/100;
     TEM2 = (Temp-(TEM1*100))/10;
     TEM3 = (Temp-(TEM1*100)-(TEM2*10));
     TEM1 = TEM1+0x30;
     TEM2 = TEM2+0x30;
-    TEM3 = TEM3+0x30;    
-    LCD_Print(STRINGTEMPN(TEM1, TEM2, TEM3));
+    TEM3 = TEM3+0x30;
+}
+void CONTROLTEMP(void){
+    if(Temp >= 65){
+        INFOTEMPP();
+        LCD_Print(STRINGTEMPP(TEM1, TEM2, TEM3));  
+    }
+    else if(Temp < 65){
+        INFOTEMPN();
+        LCD_Print(STRINGTEMPN(TEM1, TEM2, TEM3));
     }
 }
-//void INFOTEMPN(void){
-//    Temp = ((Temp-65)*55)/65;
-//    TEM1 = Temp/100;
-//    TEM2 = (Temp-(TEM1*100))/10;
-//    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
-//    TEM1 = TEM1+0x30;
-//    TEM2 = TEM2+0x30;
-//    TEM3 = TEM3+0x30;
-//}
-//void CONTROLTEMP(void){
-//    if(Temp >= 65){
-//        INFOTEMPP();
-//    }
-//    else if(Temp < 65){
-//        INFOTEMPN();
-//    }
-//}
 
 const char* STRINGTEMPP(char C1, char C2, char C3){
     char TEMP[4];
