@@ -52,6 +52,8 @@ uint8_t CLN;
 uint8_t valorADC;
 uint8_t CONTADOR;
 uint8_t Temp;
+uint8_t Tem1;
+uint8_t Tem2;
 uint8_t SND;
 uint8_t TGLTX;
 
@@ -95,6 +97,9 @@ void main(void) {
     LCD_Print("TEMP");     
     while(1){
         TGLTX++;
+        if (TGLTX > 5){
+            PIE1bits.TXIE = 1;
+            TGLTX = 0;  }      
         SlaveADC();
         INFOADC();
         SlaveCont();
@@ -105,11 +110,7 @@ void main(void) {
         LCD_Goto(8,2);
         LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
         LCD_Goto(13,2);
-        CONTROLTEMP();
-        if (TGLTX > 10){
-            PIE1bits.TXIE = 1;
-            TGLTX = 0;
-        }        
+        CONTROLTEMP();     
     }
 }
 
@@ -204,29 +205,29 @@ const char* STRINGADC(char C1, char C2, char C3){
 }
 
 void INFOTEMPP(void){
-    Temp = ((Temp-68)*150)/187;
-    TEM1 = Temp/100;
-    TEM2 = (Temp-(TEM1*100))/10;
-    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
+    Tem1 = ((Temp-68)*150)/187;
+    TEM1 = Tem1/100;
+    TEM2 = (Tem1-(TEM1*100))/10;
+    TEM3 = (Tem1-(TEM1*100)-(TEM2*10));
     TEM1 = TEM1+0x30;
     TEM2 = TEM2+0x30;
     TEM3 = TEM3+0x30; 
 }
 void INFOTEMPN(void){
-    Temp = ((Temp*(-55))/68)+55;
-    TEM1 = Temp/100;
-    TEM2 = (Temp-(TEM1*100))/10;
-    TEM3 = (Temp-(TEM1*100)-(TEM2*10));
+    Tem2 = ((Temp*(-55))/68)+55;
+    TEM1 = Tem2/100;
+    TEM2 = (Tem2-(TEM1*100))/10;
+    TEM3 = (Tem2-(TEM1*100)-(TEM2*10));
     TEM1 = TEM1+0x30;
     TEM2 = TEM2+0x30;
     TEM3 = TEM3+0x30;
 }
 void CONTROLTEMP(void){
-    if(Temp >= 65){
+    if(Temp >= 68){
         INFOTEMPP();
         LCD_Print(STRINGTEMPP(TEM1, TEM2, TEM3));  
     }
-    else if(Temp < 65){
+    else if(Temp < 68){
         INFOTEMPN();
         LCD_Print(STRINGTEMPN(TEM1, TEM2, TEM3));
     }
@@ -250,7 +251,7 @@ const char* STRINGTEMPN(char C1, char C2, char C3){
     return TEMP;
 }
 
-void SEND (void){
+void SEND(void){
     switch(SND){
         case 0:
             TXREG = 0x28;
@@ -293,10 +294,29 @@ void SEND (void){
             break;        
         case 13:
             TXREG = 0x28;
-            break;        
+            break;      
         case 14:
+            if(Temp >= 68){
+             TXREG = 0x2B;   
+            }else if (Temp < 68){
+             TXREG = 0x2D;   
+            }
+            break;            
+        case 15:
+            TXREG = TEM1;
+            break;
+        case 16:
+            TXREG = TEM2;
+            break;    
+        case 17:
+            TXREG = TEM3;
+            break;            
+        case 18:
             TXREG = 0x29;
+            break;       
+        case 19:
+            TXREG = 0x0D;
             SND = 0;
-            break;                    
+            break;
     }
 }
