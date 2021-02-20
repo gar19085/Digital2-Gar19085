@@ -73,7 +73,7 @@ const char* STRINGTEMPP(char C1, char C2, char C3);
 const char* STRINGTEMPN(char C1, char C2, char C3);
 
 void __interrupt() isr(void){
-    if(PIR1bits.TXIF == 1){
+    if(PIR1bits.TXIF == 1){ //HABILITAO INTERRUPECIONES DEL TX
         SEND();
         SND++;
         PIE1bits.TXIE = 0;
@@ -82,11 +82,11 @@ void __interrupt() isr(void){
 }
 
 void main(void) {
-    initOsc(8);    
-    Conf_TXR();    
+    initOsc(8);    //LLAMO CONFIGURACIÓN PARA EL OSCILADOR INTERNO
+    Conf_TXR();    //CONFIG DE COMUNICACIÓN USART
     Conf_RXT();
     Setup();
-    spiInit(SPI_MASTER_OSC_DIV4, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE);
+    spiInit(SPI_MASTER_OSC_DIV4, SPI_DATA_SAMPLE_MIDDLE, SPI_CLOCK_IDLE_LOW, SPI_IDLE_2_ACTIVE); //CONFIG DE SPI COMO MASTER
     LCD_init();   
     LCD_Cmd(0x8A);
     LCD_Goto(1,1);
@@ -96,21 +96,21 @@ void main(void) {
     LCD_Goto(13,1);
     LCD_Print("TEMP");     
     while(1){
-        TGLTX++;
-        if (TGLTX > 5){
+        TGLTX++; //CONTADOR PARA DELAY DEL TX
+        if (TGLTX > 2){ //DELAY DEL TX PARA QUE MANDE INFORMACIÓN CORRECTAMENTE
             PIE1bits.TXIE = 1;
             TGLTX = 0;  }      
-        SlaveADC();
-        INFOADC();
-        SlaveCont();
-        INFOCONT();
-        SlaveTemp();
+        SlaveADC(); //LAMO RUTINA DE QUE SIRVE PARA RECIBIR DATOS DEL SLAVEADC
+        INFOADC();//LLAMO FUNCION DE MAPEO
+        SlaveCont();//LAMO RUTINA DE QUE SIRVE PARA RECIBIR DATOS DEL SLAVECONT
+        INFOCONT();//FUNCION DE MAPEO
+        SlaveTemp();//LAMO RUTINA DE QUE SIRVE PARA RECIBIR DATOS DEL SLAVETEMP
         LCD_Goto(2,2);
         LCD_Print(STRINGADC(ADC1, ADC12, ADC13));
         LCD_Goto(8,2);
         LCD_Print(STRINGCONT(CONT1, CONT2, CONT3));
         LCD_Goto(13,2);
-        CONTROLTEMP();     
+        CONTROLTEMP();     //FUNCION PARA DETERMINAR SIGNO POSITIVO Y NEGATIVO
     }
 }
 
@@ -135,7 +135,7 @@ void Setup(){
     PIE1bits.TXIE = 1; 
 }
 
-void SlaveADC(void){
+void SlaveADC(void){//FUNCIÓN QUE SIRVE PARA RECIBIR LOS DATOS DEL SPI ESCLAVO
     PORTAbits.RA0 = 0;
     __delay_ms(1);
     
@@ -146,7 +146,7 @@ void SlaveADC(void){
     PORTAbits.RA0 = 1;
 }
 
-void SlaveCont(void){
+void SlaveCont(void){//MISMA RUTINA QUE EN SlaveADC
     PORTAbits.RA1 = 0;
     __delay_ms(1);
     
@@ -157,7 +157,7 @@ void SlaveCont(void){
     PORTAbits.RA1 = 1;    
 }
 
-void SlaveTemp(void){
+void SlaveTemp(void){//MISMA RUTINA QUE EN SlaveADC
     PORTAbits.RA2 = 0;
     __delay_ms(1);
     
@@ -169,7 +169,7 @@ void SlaveTemp(void){
 }
 
 
-void INFOCONT(void){
+void INFOCONT(void){ //MAPEO DEL CONTADOR
     CONT1 = CONTADOR/100;
     CONT2 = ((CONTADOR-(CONT1*100))/10);
     CONT3 = (CONTADOR-(CONT1*100))-(CONT2*10);
@@ -178,7 +178,7 @@ void INFOCONT(void){
     CONT3 = CONT3+0x30;
 }
 
-const char* STRINGCONT(char C1, char C2, char C3){
+const char* STRINGCONT(char C1, char C2, char C3){ //SE GENERA UNA MATRIZ PARA MANDAR LA INFORMACIÓN A LA LCD
     char TEMP[3];
     TEMP[0] = C1;
     TEMP[1] = C2;
@@ -186,7 +186,7 @@ const char* STRINGCONT(char C1, char C2, char C3){
     return TEMP;
 }
 
-void INFOADC(void){
+void INFOADC(void){//MAPEO DEL ADC
     ADC1 = valorADC/51;
     ADC12 = (valorADC-(ADC1*51))/10;
     ADC13 = (valorADC-(ADC1*51))-(ADC12*10);
@@ -204,7 +204,7 @@ const char* STRINGADC(char C1, char C2, char C3){
     return TEMP;
 }
 
-void INFOTEMPP(void){
+void INFOTEMPP(void){//MAPEO VALORES POSITIVOS TEMPERATURA
     Tem1 = ((Temp-68)*150)/187;
     TEM1 = Tem1/100;
     TEM2 = (Tem1-(TEM1*100))/10;
@@ -213,7 +213,7 @@ void INFOTEMPP(void){
     TEM2 = TEM2+0x30;
     TEM3 = TEM3+0x30; 
 }
-void INFOTEMPN(void){
+void INFOTEMPN(void){//MAPEO VALORES NEGATIVOS TEMPERATURA
     Tem2 = ((Temp*(-55))/68)+55;
     TEM1 = Tem2/100;
     TEM2 = (Tem2-(TEM1*100))/10;
@@ -222,7 +222,7 @@ void INFOTEMPN(void){
     TEM2 = TEM2+0x30;
     TEM3 = TEM3+0x30;
 }
-void CONTROLTEMP(void){
+void CONTROLTEMP(void){//FUNCION QUE SIRVE PARA AGREGAR EL SIGNO + O - DEPENDIENDO DEL VALOR DE LA TEMPERATURA
     if(Temp >= 68){
         INFOTEMPP();
         LCD_Print(STRINGTEMPP(TEM1, TEM2, TEM3));  
@@ -251,7 +251,7 @@ const char* STRINGTEMPN(char C1, char C2, char C3){
     return TEMP;
 }
 
-void SEND(void){
+void SEND(void){//RUTINA QUE FUNCIONA PARA MANDAR LA INFORMACIÓN A LA TERMINAL DE LA COMPUTADORA
     switch(SND){
         case 0:
             TXREG = 0x28;
