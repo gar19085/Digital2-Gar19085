@@ -31,13 +31,102 @@
 
 #include <xc.h>
 #include "I2C.h"
+#include "USART.h"
+#include "Oscilador.h"
+
+uint8_t SND;
+uint8_t TGLTX;
+uint8_t SEC;
+uint8_t MIN;
+uint8_t HRS;
+uint8_t DUMP;
+uint8_t FD;
+uint8_t FM;
+uint8_t FA;
+uint8_t USEC;
+uint8_t DSEC;
+uint8_t CMIN;
+uint8_t CHRS;
+uint8_t CDUMP;
+uint8_t CFD;
+uint8_t CFM;
+uint8_t CFA;
+
 
 void Setup(void);
+void SEND(void);
+void TimeWrite(void);
+void TimeRead(void);
+void Conversion(void);
+
+void __interrupt() isr(void){
+    if(PIR1bits.TXIF == 1){
+        SEND();
+        SND++;
+        PIE1bits.TXIE = 0;
+        PIR1bits.TXIF = 0;
+    }
+}
 
 void main(void) {
     Setup();
+    initOsc(8);
+    Conf_TXR();
+    Conf_RXT();
+    I2C_Master_Init(100000);
+    while(1){
+        TGLTX++;
+        if (TGLTX > 10){
+            PIE1bits.TXIE = 1;
+            TGLTX = 0;  }     
+     void TimeWrite(); 
+     void TimeRead();
+     void Conversion();
+    }
 }
 
+void TimeWrite(void){
+    I2C_Master_Start();
+    I2C_Master_Write(0xD0);
+    I2C_Master_Write(0);    
+    I2C_Master_Write(0x00); //SEC    
+    I2C_Master_Write(0x35); //MIN   
+    I2C_Master_Write(0x16); //HRS   
+    I2C_Master_Write(1); //IGN DIA   
+    I2C_Master_Write(0x01); //FD  
+    I2C_Master_Write(0x03); //FM   
+    I2C_Master_Write(0x21); //FA  
+    I2C_Master_Stop();    
+}
+
+void TimeRead(void){
+    I2C_Master_Start();
+    I2C_Master_Write(0xD0);
+    I2C_Master_Write(0); 
+    I2C_Master_Start();
+    I2C_Master_Write(0xD1);
+    SEC = I2C_Master_Read(0);
+    MIN = I2C_Master_Read(0);
+    HRS = I2C_Master_Read(0);
+    DUMP = I2C_Master_Read(0);
+    FD = I2C_Master_Read(0);
+    FM = I2C_Master_Read(0);
+    FA = I2C_Master_Read(1);
+    I2C_Master_Stop(); 
+}
+
+void Conversion (void){
+    USEC = SEC & 0b00001111;
+    DSEC = (USEC & 0b11110000)>>4;
+    USEC = USEC+0x30;
+    DSEC = DSEC+0x30;
+    CMIN = MIN ;
+    CHRS = HRS ;
+    CDUMP = DUMP ;
+    CFD = FD ;
+    CFM = FM ;
+    CFA = FA ;
+}
 
 void Setup (void){
     PORTA = 0;//LIMPIEZA DE PUERTOS
@@ -58,4 +147,34 @@ void Setup (void){
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
     PIE1bits.TXIE = 1; 
+}
+
+
+
+
+void SEND(void){
+    switch(SND){
+        case 0:
+            TXREG = 0x28;
+            break;
+        case 1:
+            TXREG = USEC;
+            break;
+        case 2:
+            TXREG = DSEC;
+            break;
+        case 3:
+            TXREG = 0x2D;
+            break;
+        case 4:
+            TXREG = 0x43;
+            break;
+        case 5:
+            TXREG = 0x2D;
+            break;
+        case 6:
+            TXREG = 0x0D;
+            SND = 0;
+            break;
+    }
 }
