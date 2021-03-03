@@ -34,6 +34,8 @@
 #include "USART.h"
 #include "Oscilador.h"
 
+#define _XTAL_FREQ 4000000;
+
 uint8_t SND;
 uint8_t TGLTX;
 uint8_t SEC;
@@ -45,8 +47,10 @@ uint8_t FM;
 uint8_t FA;
 uint8_t USEC;
 uint8_t DSEC;
-uint8_t CMIN;
-uint8_t CHRS;
+uint8_t UMIN;
+uint8_t DMIN;
+uint8_t UHRS;
+uint8_t DHRS;
 uint8_t CDUMP;
 uint8_t CFD;
 uint8_t CFM;
@@ -57,7 +61,8 @@ void Setup(void);
 void SEND(void);
 void TimeWrite(void);
 void TimeRead(void);
-void Conversion(void);
+void Conversion1(void);
+void Conversion2(void);
 
 void __interrupt() isr(void){
     if(PIR1bits.TXIF == 1){
@@ -66,6 +71,14 @@ void __interrupt() isr(void){
         PIE1bits.TXIE = 0;
         PIR1bits.TXIF = 0;
     }
+    if(INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
+        TMR0=236;         
+        INTCONbits.TMR0IF = 0;
+        TGLTX++;
+        if (TGLTX == 10){
+            PIE1bits.TXIE = 1;
+            TGLTX = 0;  }          
+        }            
 }
 
 void main(void) {
@@ -74,14 +87,11 @@ void main(void) {
     Conf_TXR();
     Conf_RXT();
     I2C_Master_Init(100000);
-    while(1){
-        TGLTX++;
-        if (TGLTX > 10){
-            PIE1bits.TXIE = 1;
-            TGLTX = 0;  }     
-     void TimeWrite(); 
-     void TimeRead();
-     void Conversion();
+    TimeWrite();
+    while(1){    
+        TimeRead();
+        Conversion1();
+        Conversion2();
     }
 }
 
@@ -89,9 +99,9 @@ void TimeWrite(void){
     I2C_Master_Start();
     I2C_Master_Write(0xD0);
     I2C_Master_Write(0);    
-    I2C_Master_Write(0x00); //SEC    
+    I2C_Master_Write(0b00000000); //SEC    
     I2C_Master_Write(0x35); //MIN   
-    I2C_Master_Write(0x16); //HRS   
+    I2C_Master_Write(0x01); //HRS   
     I2C_Master_Write(1); //IGN DIA   
     I2C_Master_Write(0x01); //FD  
     I2C_Master_Write(0x03); //FM   
@@ -103,29 +113,34 @@ void TimeRead(void){
     I2C_Master_Start();
     I2C_Master_Write(0xD0);
     I2C_Master_Write(0); 
-    I2C_Master_Start();
+    I2C_Master_RepeatedStart();
     I2C_Master_Write(0xD1);
-    SEC = I2C_Master_Read(0);
-    MIN = I2C_Master_Read(0);
-    HRS = I2C_Master_Read(0);
-    DUMP = I2C_Master_Read(0);
-    FD = I2C_Master_Read(0);
-    FM = I2C_Master_Read(0);
-    FA = I2C_Master_Read(1);
+    SEC = I2C_Master_Read(1);
+    MIN = I2C_Master_Read(1);
+    HRS = I2C_Master_Read(1);
+    DUMP = I2C_Master_Read(1);
+    FD = I2C_Master_Read(1);
+    FM = I2C_Master_Read(1);
+    FA = I2C_Master_Read(0);
     I2C_Master_Stop(); 
 }
 
-void Conversion (void){
-    USEC = SEC & 0b00001111;
-    DSEC = (USEC & 0b11110000)>>4;
+void Conversion1(void){
+    USEC = (SEC & 0b00001111);
+    DSEC = (SEC & 0b01110000)>>4;
+    UMIN = (MIN & 0b00001111);
+    DMIN = (MIN & 0b01110000)>>4;
+    UHRS = (HRS & 0b00001111);
+    DHRS = (HRS & 0b00110000)>>4;
+}
+
+void Conversion2(void){
     USEC = USEC+0x30;
     DSEC = DSEC+0x30;
-    CMIN = MIN ;
-    CHRS = HRS ;
-    CDUMP = DUMP ;
-    CFD = FD ;
-    CFM = FM ;
-    CFA = FA ;
+    UMIN = UMIN+0x30;
+    DMIN = DMIN+0x30;
+    UHRS = UHRS+0x30;
+    DHRS = DHRS+0x30;
 }
 
 void Setup (void){
@@ -143,13 +158,15 @@ void Setup (void){
     TRISC = 0b00010000;
     TRISD = 0;
     TRISE = 0; 
+    OPTION_REG = 0b00000011;    
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
     PIE1bits.TXIE = 1; 
+    INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
+    INTCONbits.T0IF = 0;      
+    PIE1bits.TXIE = 1;
 }
-
-
 
 
 void SEND(void){
@@ -167,12 +184,21 @@ void SEND(void){
             TXREG = 0x2D;
             break;
         case 4:
-            TXREG = 0x43;
+            TXREG = UMIN;
             break;
         case 5:
-            TXREG = 0x2D;
+            TXREG = DMIN;
             break;
         case 6:
+            TXREG = 0x2D;
+            break;
+        case 7:
+            TXREG = UHRS;
+            break;
+        case 8:
+            TXREG = DHRS;
+            break;            
+        case 9:
             TXREG = 0x0D;
             SND = 0;
             break;
