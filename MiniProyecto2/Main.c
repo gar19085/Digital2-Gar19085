@@ -52,9 +52,12 @@ uint8_t DMIN;
 uint8_t UHRS;
 uint8_t DHRS;
 uint8_t CDUMP;
-uint8_t CFD;
-uint8_t CFM;
-uint8_t CFA;
+uint8_t UFD;
+uint8_t DFD;
+uint8_t UFM;
+uint8_t DFM;
+uint8_t UFA;
+uint8_t DFA;
 
 
 void Setup(void);
@@ -132,6 +135,12 @@ void Conversion1(void){
     DMIN = (MIN & 0b01110000)>>4;
     UHRS = (HRS & 0b00001111);
     DHRS = (HRS & 0b00110000)>>4;
+    UFD = (HRS & 0B00001111);
+    DFD = (HRS & 0b00110000)>>4;
+    UFM = (HRS & 0B00001111);
+    DFM = (HRS & 0b00010000)>>4;
+    UFA = (HRS & 0b00001111);
+    DFA = (HRS & 0b11110000)>>4;
 }
 
 void Conversion2(void){
@@ -141,6 +150,12 @@ void Conversion2(void){
     DMIN = DMIN+0x30;
     UHRS = UHRS+0x30;
     DHRS = DHRS+0x30;
+    UFD = UFD+0x30;
+    DFD = DFD+0x30;
+    UFM = UFM+0x30;
+    DFM = DFM+0x30;
+    UFA = UFA+0x30;
+    DFA = DFA+0x30;
 }
 
 void Setup (void){
@@ -158,14 +173,13 @@ void Setup (void){
     TRISC = 0b00010000;
     TRISD = 0;
     TRISE = 0; 
-    OPTION_REG = 0b00000011;    
+    OPTION_REG = 0b00000111;    
     INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
     PIE1bits.TXIE = 1; 
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;      
-    PIE1bits.TXIE = 1;
 }
 
 
@@ -197,8 +211,38 @@ void SEND(void){
             break;
         case 8:
             TXREG = DHRS;
-            break;            
+            break;      
         case 9:
+            TXREG = 0x2D;
+            break;
+        case 10:
+            TXREG = UFD;
+            break;
+        case 11:
+            TXREG = DFD;
+            break;
+        case 12:
+            TXREG = 0x2F;
+            break;
+        case 13:
+            TXREG = UFM;
+            break;    
+        case 14:
+            TXREG = DFM;
+            break;
+        case 15:
+            TXREG = 0x2F;
+            break;
+        case 16:
+            TXREG = UFA;
+            break;
+        case 17:
+            TXREG = DFA;
+            break;
+        case 18:
+            TXREG = 0x2D;
+            break;          
+        case 19:
             TXREG = 0x0D;
             SND = 0;
             break;
