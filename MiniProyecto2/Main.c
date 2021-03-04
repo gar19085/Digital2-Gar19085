@@ -36,6 +36,7 @@
 
 #define _XTAL_FREQ 4000000;
 
+
 uint8_t SND;
 uint8_t TGLTX;
 uint8_t SEC;
@@ -51,7 +52,6 @@ uint8_t UMIN;
 uint8_t DMIN;
 uint8_t UHRS;
 uint8_t DHRS;
-uint8_t CDUMP;
 uint8_t UFD;
 uint8_t DFD;
 uint8_t UFM;
@@ -70,31 +70,40 @@ uint8_t UFM1;
 uint8_t DFM1;
 uint8_t UFA1;
 uint8_t DFA1;
+uint8_t ESP;
+uint8_t ENABLETX;
 
 
 void Setup(void);
 void SEND(void);
+void RESP(void);
 void TimeWrite(void);
 void TimeRead(void);
 void Conversion1(void);
 void Conversion2(void);
 
 void __interrupt() isr(void) {
-    if (PIR1bits.TXIF == 1) {
-        SEND();
-        SND++;
-        PIE1bits.TXIE = 0;
-        PIR1bits.TXIF = 0;
+
+    if (ENABLETX == 1) {
+        if (PIR1bits.TXIF == 1) {
+            SEND();
+            SND++;
+            PIE1bits.TXIE = 0;
+            PIR1bits.TXIF = 0;
+        }
     }
     if (INTCONbits.TMR0IF == 1) { //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
         TMR0 = 236;
         TGLTX++;
         INTCONbits.TMR0IF = 0;
-        //        TGLTX++;
-        //        if (TGLTX == 10){
-        //            PIE1bits.TXIE = 1;
-        //            TGLTX = 0;  }          
     }
+
+    if (PIR1bits.RCIF == 1) {
+        ESP = RCREG;
+        RESP();
+        PIR1bits.RCIF = 0;
+    }
+
 }
 
 void main(void) {
@@ -195,6 +204,8 @@ void Setup(void) {
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
     PIE1bits.TXIE = 1;
+    PIR1bits.RCIF = 0;
+    PIE1bits.RCIE = 1;
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;
 }
@@ -211,53 +222,71 @@ void SEND(void) {
             TXREG = UHRS;
             break;
         case 3:
-                        TXREG = 0x2D;
-                        break;
-                    case 4:
-                        TXREG = DMIN;
-                        break;
-                    case 5:
-                        TXREG = UMIN;
-                        break;
-                    case 6:
-                        TXREG = 0x2D;
-                        break;
-                    case 7:
-                        TXREG = DSEC;
-                        break;
-                    case 8:
-                        TXREG = USEC;
-                        break;      
-                    case 9:
-                        TXREG = 0x2D;
-                        break;
-                    case 10:
-                        TXREG = DFD;
-                        break;
-                    case 11:
-                        TXREG = UFD;
-                        break;
-                    case 12:
-                        TXREG = 0x2F;
-                        break;
-                    case 13:
-                        TXREG = DFM;
-                        break;    
-                    case 14:
-                        TXREG = UFM;
-                        break;
-                    case 15:
-                        TXREG = 0x2F;
-                        break;
-                    case 16:
-                        TXREG = DFA;
-                        break;
-                    case 17:
-                        TXREG = UFA;
-                        break;     
-                    case 18:
-                        TXREG = 0x0A;
-                        SND = 0;
-                        break;
+            TXREG = 0x2D;
+            break;
+        case 4:
+            TXREG = DMIN;
+            break;
+        case 5:
+            TXREG = UMIN;
+            break;
+        case 6:
+            TXREG = 0x2D;
+            break;
+        case 7:
+            TXREG = DSEC;
+            break;
+        case 8:
+            TXREG = USEC;
+            break;
+        case 9:
+            TXREG = 0x2D;
+            break;
+            //                    case 10:
+            //                        TXREG = DFD;
+            //                        break;
+            //                    case 11:
+            //                        TXREG = UFD;
+            //                        break;
+            //                    case 12:
+            //                        TXREG = 0x2F;
+            //                        break;
+            //                    case 13:
+            //                        TXREG = DFM;
+            //                        break;    
+            //                    case 14:
+            //                        TXREG = UFM;
+            //                        break;
+            //                    case 15:
+            //                        TXREG = 0x2F;
+            //                        break;
+            //                    case 16:
+            //                        TXREG = DFA;
+            //                        break;
+            //                    case 17:
+            //                        TXREG = UFA;
+            //                        break;     
+        case 10:
+            TXREG = 0x0A;
+            SND = 0;
+            break;
+    }
+}
+
+void RESP(void) {
+    if (ESP == 1) {
+        ENABLETX = 1;
+    } else if (ESP == 2) {
+        RB0 = 1;
+        RB1 = 0;
+    } else if (ESP == 3) {
+        RB0 = 1;
+        RB1 = 1;
+    } else if (ESP == 4) {
+        RB0 = 0;
+        RB1 = 1;
+    } else if (ESP == 5){
+        RB0 = 0;
+        RB1 = 0;
     }
 }
