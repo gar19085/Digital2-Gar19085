@@ -58,6 +58,18 @@ uint8_t UFM;
 uint8_t DFM;
 uint8_t UFA;
 uint8_t DFA;
+uint8_t USEC1;
+uint8_t DSEC1;
+uint8_t UMIN1;
+uint8_t DMIN1;
+uint8_t UHRS1;
+uint8_t DHRS1;
+uint8_t UFD1;
+uint8_t DFD1;
+uint8_t UFM1;
+uint8_t DFM1;
+uint8_t UFA1;
+uint8_t DFA1;
 
 
 void Setup(void);
@@ -67,21 +79,22 @@ void TimeRead(void);
 void Conversion1(void);
 void Conversion2(void);
 
-void __interrupt() isr(void){
-    if(PIR1bits.TXIF == 1){
+void __interrupt() isr(void) {
+    if (PIR1bits.TXIF == 1) {
         SEND();
         SND++;
         PIE1bits.TXIE = 0;
         PIR1bits.TXIF = 0;
     }
-    if(INTCONbits.TMR0IF == 1){   //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
-        TMR0=236;         
-        INTCONbits.TMR0IF = 0;
+    if (INTCONbits.TMR0IF == 1) { //CONFIGURACIÓN PARA UTILIZAR LA NTERRUPCIÓN DE TMR0
+        TMR0 = 236;
         TGLTX++;
-        if (TGLTX == 10){
-            PIE1bits.TXIE = 1;
-            TGLTX = 0;  }          
-        }            
+        INTCONbits.TMR0IF = 0;
+        //        TGLTX++;
+        //        if (TGLTX == 10){
+        //            PIE1bits.TXIE = 1;
+        //            TGLTX = 0;  }          
+    }
 }
 
 void main(void) {
@@ -91,31 +104,35 @@ void main(void) {
     Conf_RXT();
     I2C_Master_Init(100000);
     TimeWrite();
-    while(1){    
+    while (1) {
         TimeRead();
-        Conversion1();
-        Conversion2();
+        if (TGLTX > 80) {
+            PIE1bits.TXIE = 1;
+            TGLTX = 0;
+            Conversion1();
+            Conversion2();
+        }
     }
 }
 
-void TimeWrite(void){
+void TimeWrite(void) {
     I2C_Master_Start();
     I2C_Master_Write(0xD0);
-    I2C_Master_Write(0);    
+    I2C_Master_Write(0);
     I2C_Master_Write(0b00000000); //SEC    
-    I2C_Master_Write(0x35); //MIN   
-    I2C_Master_Write(0x01); //HRS   
+    I2C_Master_Write(0x03); //MIN   
+    I2C_Master_Write(0x18); //HRS   
     I2C_Master_Write(1); //IGN DIA   
-    I2C_Master_Write(0x01); //FD  
+    I2C_Master_Write(0x03); //FD  
     I2C_Master_Write(0x03); //FM   
     I2C_Master_Write(0x21); //FA  
-    I2C_Master_Stop();    
+    I2C_Master_Stop();
 }
 
-void TimeRead(void){
+void TimeRead(void) {
     I2C_Master_Start();
     I2C_Master_Write(0xD0);
-    I2C_Master_Write(0); 
+    I2C_Master_Write(0);
     I2C_Master_RepeatedStart();
     I2C_Master_Write(0xD1);
     SEC = I2C_Master_Read(1);
@@ -125,126 +142,122 @@ void TimeRead(void){
     FD = I2C_Master_Read(1);
     FM = I2C_Master_Read(1);
     FA = I2C_Master_Read(0);
-    I2C_Master_Stop(); 
+    I2C_Master_Stop();
 }
 
-void Conversion1(void){
-    USEC = (SEC & 0b00001111);
-    DSEC = (SEC & 0b01110000)>>4;
-    UMIN = (MIN & 0b00001111);
-    DMIN = (MIN & 0b01110000)>>4;
-    UHRS = (HRS & 0b00001111);
-    DHRS = (HRS & 0b00110000)>>4;
-    UFD = (HRS & 0B00001111);
-    DFD = (HRS & 0b00110000)>>4;
-    UFM = (HRS & 0B00001111);
-    DFM = (HRS & 0b00010000)>>4;
-    UFA = (HRS & 0b00001111);
-    DFA = (HRS & 0b11110000)>>4;
+void Conversion1(void) {
+    USEC1 = (SEC & 0b00001111);
+    DSEC1 = ((SEC & 0b11110000) >> 4);
+    UMIN1 = (MIN & 0b00001111);
+    DMIN1 = ((MIN & 0b11110000) >> 4);
+    UHRS1 = (HRS & 0b00001111);
+    DHRS1 = ((HRS & 0b00110000) >> 4);
+    UFD1 = (HRS & 0b00001111);
+    DFD1 = ((HRS & 0b11110000) >> 4);
+    UFM1 = (HRS & 0B00001111);
+    DFM1 = ((HRS & 0b11110000) >> 4);
+    UFA1 = (HRS & 0b00001111);
+    DFA1 = ((HRS & 0b11110000) >> 4);
 }
 
-void Conversion2(void){
-    USEC = USEC+0x30;
-    DSEC = DSEC+0x30;
-    UMIN = UMIN+0x30;
-    DMIN = DMIN+0x30;
-    UHRS = UHRS+0x30;
-    DHRS = DHRS+0x30;
-    UFD = UFD+0x30;
-    DFD = DFD+0x30;
-    UFM = UFM+0x30;
-    DFM = DFM+0x30;
-    UFA = UFA+0x30;
-    DFA = DFA+0x30;
+void Conversion2(void) {
+    USEC = USEC1 + 0x30;
+    DSEC = DSEC1 + 0x30;
+    UMIN = UMIN1 + 0x30;
+    DMIN = DMIN1 + 0x30;
+    UHRS = UHRS1 + 0x30;
+    DHRS = DHRS1 + 0x30;
+    UFD = UFD1 + 0x30;
+    DFD = DFD1 + 0x30;
+    UFM = UFM1 + 0x30;
+    DFM = DFM1 + 0x30;
+    UFA = UFA1 + 0x30;
+    DFA = DFA1 + 0x30;
 }
 
-void Setup (void){
-    PORTA = 0;//LIMPIEZA DE PUERTOS
+void Setup(void) {
+    PORTA = 0; //LIMPIEZA DE PUERTOS
     PORTB = 0;
     PORTC = 0;
     PORTD = 0;
     PORTE = 0;
-    
-    ANSEL = 0;//INDICO EL PRIMER PIN COMO ANALOGO
+
+    ANSEL = 0; //INDICO EL PRIMER PIN COMO ANALOGO
     ANSELH = 0;
-    
+
     TRISA = 0;
     TRISB = 0;
     TRISC = 0b00010000;
     TRISD = 0;
-    TRISE = 0; 
-    OPTION_REG = 0b00000111;    
-    INTCONbits.GIE = 1;//HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
+    TRISE = 0;
+    OPTION_REG = 0b00000111;
+    INTCONbits.GIE = 1; //HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
-    PIE1bits.TXIE = 1; 
+    PIE1bits.TXIE = 1;
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
-    INTCONbits.T0IF = 0;      
+    INTCONbits.T0IF = 0;
 }
 
-
-void SEND(void){
-    switch(SND){
+void SEND(void) {
+    switch (SND) {
         case 0:
-            TXREG = 0x28;
+            TXREG = 0x20;
             break;
         case 1:
-            TXREG = USEC;
+            TXREG = DHRS;
             break;
         case 2:
-            TXREG = DSEC;
-            break;
-        case 3:
-            TXREG = 0x2D;
-            break;
-        case 4:
-            TXREG = UMIN;
-            break;
-        case 5:
-            TXREG = DMIN;
-            break;
-        case 6:
-            TXREG = 0x2D;
-            break;
-        case 7:
             TXREG = UHRS;
             break;
-        case 8:
-            TXREG = DHRS;
-            break;      
-        case 9:
-            TXREG = 0x2D;
-            break;
-        case 10:
-            TXREG = UFD;
-            break;
-        case 11:
-            TXREG = DFD;
-            break;
-        case 12:
-            TXREG = 0x2F;
-            break;
-        case 13:
-            TXREG = UFM;
-            break;    
-        case 14:
-            TXREG = DFM;
-            break;
-        case 15:
-            TXREG = 0x2F;
-            break;
-        case 16:
-            TXREG = UFA;
-            break;
-        case 17:
-            TXREG = DFA;
-            break;
-        case 18:
-            TXREG = 0x2D;
-            break;          
-        case 19:
-            TXREG = 0x0D;
-            SND = 0;
-            break;
+        case 3:
+                        TXREG = 0x2D;
+                        break;
+                    case 4:
+                        TXREG = DMIN;
+                        break;
+                    case 5:
+                        TXREG = UMIN;
+                        break;
+                    case 6:
+                        TXREG = 0x2D;
+                        break;
+                    case 7:
+                        TXREG = DSEC;
+                        break;
+                    case 8:
+                        TXREG = USEC;
+                        break;      
+                    case 9:
+                        TXREG = 0x2D;
+                        break;
+                    case 10:
+                        TXREG = DFD;
+                        break;
+                    case 11:
+                        TXREG = UFD;
+                        break;
+                    case 12:
+                        TXREG = 0x2F;
+                        break;
+                    case 13:
+                        TXREG = DFM;
+                        break;    
+                    case 14:
+                        TXREG = UFM;
+                        break;
+                    case 15:
+                        TXREG = 0x2F;
+                        break;
+                    case 16:
+                        TXREG = DFA;
+                        break;
+                    case 17:
+                        TXREG = UFA;
+                        break;     
+                    case 18:
+                        TXREG = 0x0A;
+                        SND = 0;
+                        break;
     }
 }
