@@ -36,7 +36,7 @@
 
 #define _XTAL_FREQ 4000000;
 
-
+//VARIABLES NECESARIAS
 uint8_t SND;
 uint8_t TGLTX;
 uint8_t SEC;
@@ -73,7 +73,7 @@ uint8_t DFA1;
 uint8_t ESP;
 uint8_t ENABLETX;
 
-
+//INDICO LAS FUNCIONES QUE SE VAN A UTILIZAR
 void Setup(void);
 void SEND(void);
 void RESP(void);
@@ -82,12 +82,12 @@ void TimeRead(void);
 void Conversion1(void);
 void Conversion2(void);
 
-void __interrupt() isr(void) {
+void __interrupt() isr(void) {//COMIENZO RUTINA DE INTERRUPCIONES
 
-    if (ENABLETX == 1) {
-        if (PIR1bits.TXIF == 1) {
-            SEND();
-            SND++;
+    if (ENABLETX == 1) {  //ENABLETX FUNCIONA PARA HABILITAR EÑ ENVIO DE DATOS
+        if (PIR1bits.TXIF == 1) {//RUTINA ENVIO DE DATOS MEDIANTE COMUNICACIÓN UART
+            SEND();//LLAMO RUTINA DE ENVIO DE DATOS
+            SND++;//VARIABLE QUE ME SIRVE COMO CONTADOR
             PIE1bits.TXIE = 0;
             PIR1bits.TXIF = 0;
         }
@@ -98,7 +98,7 @@ void __interrupt() isr(void) {
         INTCONbits.TMR0IF = 0;
     }
 
-    if (PIR1bits.RCIF == 1) {
+    if (PIR1bits.RCIF == 1) {//RUTINA PARA RECIBIR LOS DATOS DEL ESP
         ESP = RCREG;
         RESP();
         PIR1bits.RCIF = 0;
@@ -108,17 +108,17 @@ void __interrupt() isr(void) {
 
 void main(void) {
     Setup();
-    initOsc(8);
-    Conf_TXR();
-    Conf_RXT();
+    initOsc(8);//CONGURO OSCILADOR
+    Conf_TXR();//CONFIGURACION DE TX
+    Conf_RXT();//CONFIGURACION DE RX
     I2C_Master_Init(100000);
-    TimeWrite();
+    TimeWrite();//LLAMO FUNCIÓN PARA COMENZAR A ESCRIBIR EN EL MODULO I2C
     while (1) {
-        TimeRead();
-        if (TGLTX > 80) {
+        TimeRead();//LLAMO FUNCIÓN PARA LEER LA INFORMACIÓN ESCRITA EN EL MODULO
+        if (TGLTX > 80) {//ESTA RUTINA ME FUNCIONA COMO TOGGLE PARA QUE FUNCIONE EL TX
             PIE1bits.TXIE = 1;
             TGLTX = 0;
-            Conversion1();
+            Conversion1();//LLAMO LA FUNCIÓN DE CONVERSIÓN DE DATOS DEL MODULO
             Conversion2();
         }
     }
@@ -126,15 +126,15 @@ void main(void) {
 
 void TimeWrite(void) {
     I2C_Master_Start();
-    I2C_Master_Write(0xD0);
+    I2C_Master_Write(0xD0);//HABILITO LOS REGISTROS DEL MODULO
     I2C_Master_Write(0);
-    I2C_Master_Write(0b00000000); //SEC    
-    I2C_Master_Write(0x03); //MIN   
-    I2C_Master_Write(0x18); //HRS   
+    I2C_Master_Write(0b00000000); //ESCRIBO LOS SEGUNDOS
+    I2C_Master_Write(0x01); //LOS MINUTOS
+    I2C_Master_Write(0x18); //LA HORA
     I2C_Master_Write(1); //IGN DIA   
-    I2C_Master_Write(0x03); //FD  
-    I2C_Master_Write(0x03); //FM   
-    I2C_Master_Write(0x21); //FA  
+    I2C_Master_Write(0x04); //FECHA DEL DIA
+    I2C_Master_Write(0x03); //MES
+    I2C_Master_Write(0x21); //AÑO 
     I2C_Master_Stop();
 }
 
@@ -154,14 +154,14 @@ void TimeRead(void) {
     I2C_Master_Stop();
 }
 
-void Conversion1(void) {
-    USEC1 = (SEC & 0b00001111);
+void Conversion1(void) { //EN ESTA FUNCION DE CONVERSION SE SEPARA LA VARIABLE QUE SE LEE
+    USEC1 = (SEC & 0b00001111); //EN NIBBLES 
     DSEC1 = ((SEC & 0b11110000) >> 4);
-    UMIN1 = (MIN & 0b00001111);
-    DMIN1 = ((MIN & 0b11110000) >> 4);
-    UHRS1 = (HRS & 0b00001111);
-    DHRS1 = ((HRS & 0b00110000) >> 4);
-    UFD1 = (HRS & 0b00001111);
+    UMIN1 = (MIN & 0b00001111);//ESTOS REPRESENTAN LA UNIDAD 
+    DMIN1 = ((MIN & 0b11110000) >> 4);//ESTOS REPRESENTAN LA DECENA
+    UHRS1 = (HRS & 0b00001111); //SE SEPARA DE ESTA MANERA PARA ASÍ PODER
+    DHRS1 = ((HRS & 0b00110000) >> 4); //MANDAR CORRECTAMENTE LOS DIGITOS
+    UFD1 = (HRS & 0b00001111);// QUE SE ESCRIBIERON ANTERIORMENTE
     DFD1 = ((HRS & 0b11110000) >> 4);
     UFM1 = (HRS & 0B00001111);
     DFM1 = ((HRS & 0b11110000) >> 4);
@@ -170,8 +170,8 @@ void Conversion1(void) {
 }
 
 void Conversion2(void) {
-    USEC = USEC1 + 0x30;
-    DSEC = DSEC1 + 0x30;
+    USEC = USEC1 + 0x30; //SE LE SUMA 0x30 PARA PODER 
+    DSEC = DSEC1 + 0x30; //MANDAR LOS DATOS CORRECTAMENTE
     UMIN = UMIN1 + 0x30;
     DMIN = DMIN1 + 0x30;
     UHRS = UHRS1 + 0x30;
@@ -203,16 +203,16 @@ void Setup(void) {
     INTCONbits.GIE = 1; //HABILITO LAS INTERRUPCIONES NECESARIAS, LA GLOBAL PRINCIPALMENTE
     INTCONbits.PEIE = 1; //HABILITA LOS PERIPHERAL INTERRUPTS
     PIR1bits.TXIF = 0;
-    PIE1bits.TXIE = 1;
+    PIE1bits.TXIE = 1; //HABILITO INTERRUPCIONES DE TX Y RX
     PIR1bits.RCIF = 0;
     PIE1bits.RCIE = 1;
     INTCONbits.T0IE = 1; //HABILITO LAS INTERRUPCIONES DEL TMR0
     INTCONbits.T0IF = 0;
 }
-
+//FUNCION DE ENVIO DE DATOS CON SWITCH CASE
 void SEND(void) {
-    switch (SND) {
-        case 0:
+    switch (SND) {//SND FUNCIONA COMO UN CONTADOR PARA CAMBIAR DE CASES
+        case 0://EN CADA CASE SE MANDA EL VALOR CORRESPONDIENTE
             TXREG = 0x20;
             break;
         case 1:
@@ -240,43 +240,19 @@ void SEND(void) {
             TXREG = USEC;
             break;
         case 9:
-            TXREG = 0x2D;
+            TXREG = 0x3A;
             break;
-            //                    case 10:
-            //                        TXREG = DFD;
-            //                        break;
-            //                    case 11:
-            //                        TXREG = UFD;
-            //                        break;
-            //                    case 12:
-            //                        TXREG = 0x2F;
-            //                        break;
-            //                    case 13:
-            //                        TXREG = DFM;
-            //                        break;    
-            //                    case 14:
-            //                        TXREG = UFM;
-            //                        break;
-            //                    case 15:
-            //                        TXREG = 0x2F;
-            //                        break;
-            //                    case 16:
-            //                        TXREG = DFA;
-            //                        break;
-            //                    case 17:
-            //                        TXREG = UFA;
-            //                        break;     
         case 10:
             TXREG = 0x0A;
             SND = 0;
             break;
     }
 }
-
+//FUNCION QUE SE HABILITA CON LO QUE EL PIC RECIBA DEL ESP32
 void RESP(void) {
     if (ESP == 1) {
-        ENABLETX = 1;
-    } else if (ESP == 2) {
+        ENABLETX = 1;//SE HABILITA EL ENVIO DE DATOS DEL PIC
+    } else if (ESP == 2) {//SE ENCIENDEN LOS LEDS CORRESPONDIENTES QUE MANDE ADAFRUIT
         RB0 = 1;
         RB1 = 0;
     } else if (ESP == 3) {
