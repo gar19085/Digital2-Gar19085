@@ -38,6 +38,7 @@ int L;
 int l;
 int W;
 int w;
+int ContL;
 
 String loading = "Loading....";
 String Pl_1 = "Player 1";
@@ -103,11 +104,11 @@ void loop() {
     LCD_Print(loading, 60, 100, 2, 0xFFFF,0x00);
     delay(2000);
     LCD_Clear(0x00);
+    movlogo();
     LCD_Bitmap(110,80,90,50,logo);
     delay(1000);
     LCD_Print(Pl_1,120,140,1,0xffff,0x00);
-    LCD_Print(Pl_2,120,170,1,0xffff,0x00);
-    //movlogo();    
+    LCD_Print(Pl_2,120,170,1,0xffff,0x00);    
   while( L <= l){
 
     //LCD_Bitmap(L,220, 19, 19, ship);
@@ -122,30 +123,32 @@ void loop() {
 //********************************************
 
 void movlogo (void){
-  while(L != 1){
-    if(L < 1){
-      L=1;
-      FillRect(L-19,10,90,50,0x00);
-      LCD_Bitmap(110,80,90,50,logo);
-      if(L > 301){
-        L = 0;
-        l = 0;
-        FillRect(301,10,90,50,0x00);
-        LCD_Bitmap(110,80,90,50,logo);
+  while( L != l){
+    if (L < l){
+      L=l;
+      FillRect(100, 100,90,50,0x00);
+      LCD_Bitmap(L,100, 90, 50, logo);
       }
-    }
-    if (L>1){
-      L=1;
-      FillRect(L+19,10,90,50,0x00);
-      LCD_Bitmap(110,80,90,50,logo);
-      if(L < 0){
-        L=301;
-        l=301;
-        FillRect(0,220,90,50,0x00);
-        LCD_Bitmap(110,80,90,50,logo);
-      }
-    }
   }
+}
+
+
+
+void shoot(unsigned char n){
+  if (n == LOW){flag1=1;}
+  else if (n == HIGH && flag_1==0 && flag1==1){
+    flag_1=1;
+    P_cor_x=L;}
+  else if(P_cor_y<=201 && P_cor_y>0 && P_cor_y>=9 && flag1==1 && flag_1==1){
+    LCD_Bitmap(P_cor_x+5,P_cor_y, 11,12, proyectil);
+    FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
+    //delay(100);
+    P_cor_y=P_cor_y-12;}
+  else if(P_cor_y<=9){
+    FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
+    P_cor_y=198; 
+    flag1=0;
+    flag_1=0;}
 }
 
 
