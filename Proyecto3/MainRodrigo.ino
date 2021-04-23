@@ -39,6 +39,7 @@ int l;
 int W;
 int w;
 int ContL;
+int flagL ,flag_L,L_cor_x,PL_cor_y;
 
 String loading = "Loading....";
 String Pl_1 = "Player 1";
@@ -134,9 +135,10 @@ void movlogo (void){
 
 
 
-void shoot(unsigned char n){
-  if (n == LOW){flag1=1;}
-  else if (n == HIGH && flag_1==0 && flag1==1){
+void shoot(void){
+  ContL=0;
+  if (ContL == 0){flagL=1;}
+  else if (ContL == 0 && flag_L==0 && flagL==1){
     flag_1=1;
     P_cor_x=L;}
   else if(P_cor_y<=201 && P_cor_y>0 && P_cor_y>=9 && flag1==1 && flag_1==1){
@@ -151,6 +153,21 @@ void shoot(unsigned char n){
     flag_1=0;}
 }
 
+void shoot(unsigned char n){
+  if (n == LOW){flag1=1;}
+  else if (n == HIGH && flag_1==0 && flag1==1){
+    flag_1=1;
+    P_cor_x=L;}
+  else if(P_cor_y<=201 && P_cor_y>0 && P_cor_y>=9 && flag1==1 && flag_1==1){
+    LCD_Bitmap(P_cor_x+5,P_cor_y, 11,12, proyectil);
+    FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
+    P_cor_y=P_cor_y-12;}
+  else if(P_cor_y<=9){
+    FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
+    P_cor_y=198; 
+    flag1=0;
+    flag_1=0;}
+}
 
 //*********************************************
 // Función para inicializar LCD

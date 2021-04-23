@@ -32,6 +32,10 @@ int DPINS[] = {PB_0, PB_1, PB_2, PB_3, PB_4, PB_5, PB_6, PB_7};
 #define P5 PD_6
 #define P6 PF_4
 
+#include <SPI.h>
+#include <SD.h>
+File myFile;
+File root;
 
 //#define pb1 PUSH1
 //#define pb2 PUSH2
@@ -41,18 +45,29 @@ int flg_1,flg_2;
 
 int game_mode_flag;
 
+//VARIABLES ENEMIGOS
 int g1,g2,g3,g4,g5,g6,g7,g8,g9,g10;
 int r1,r2,r3,r4,r5,r6,r7,r8,r9,r10;
 
+
+//FLAGS DISPAROS
 int flag1 ,flag_1,P_cor_x,P_cor_y;
 int flag2 ,flag_2,P2_cor_x,P2_cor_y;
 
+//CONTADORES
 int cont_index; 
 
 int cont_ply1,cont_play2;
 
 int contador_J1, contador_J2;
 
+
+//int ContL, TopeL;
+//int flagL ,flag_L,L_cor_x,L_cor_y;
+
+String loading = "Loading....";
+String Pl_1 = "Player 1";
+String Pl_2 = "Player 2";
 
 //***************************************************************************************************************************************
 // Functions Prototypes
@@ -70,6 +85,8 @@ void LCD_Print(String text, int x, int y, int fontSize, int color, int backgroun
 void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
 void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
 
+
+//void MovLogo(void);
 void move_nave_1 (void);
 void enemigo (int x,int y);
 void shoot(unsigned char n);
@@ -96,12 +113,15 @@ void setup() {
  pinMode(P5, INPUT_PULLUP);
  pinMode(P6, INPUT_PULLUP);
 
-
-  
  P_cor_y=198;
  P2_cor_y=198;
- 
-
+ //L_cor_y=10;
+ //L_cor_x=110;
+ //ContL = 10;
+ //TopeL=80;
+LCD_Print(loading, 60, 100, 2, 0xFFFF,0x00);
+delay(2000); 
+LCD_Clear(0x00);
  
 
 
@@ -111,9 +131,15 @@ void setup() {
 //***************************************************************************************************************************************
 void loop() {
   while(game_mode_flag==0){ 
+    //MovLogo(ContL);
+    LCD_Bitmap(110,80,90,50,logo);
+    delay(100);
+    LCD_Print(Pl_1,120,140,1,0xffff,0x00);
+    LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
     int val_PB1 = digitalRead(P3);
     int val_PB2 = digitalRead(P6);
     if (val_PB1==LOW){
+      LCD_Clear(0x00);  
       game_mode_flag=1;
       contador_J1=20;
       l=150;
@@ -121,6 +147,7 @@ void loop() {
       r1=0;r2=0;r3=0;r4=0;r5=0;r6=0;r7=0;r8=0;r9=0;r10=0;
       }
     if (val_PB2==LOW){
+      LCD_Clear(0x00);  
       game_mode_flag=2;
       contador_J1=10;
       contador_J2=10;
@@ -138,26 +165,29 @@ void loop() {
     pushb1 (val_P1);
     pushb2 (val_P2);
     move_nave();
-    enemigos1 (50,50,23,14,cont_index,enemy_b,&g1,&contador_J1);
-    enemigos1 (74,50,23,14,cont_index,enemy_b,&g2,&contador_J1);
-    enemigos1 (98,50,23,14,cont_index,enemy_b,&g3,&contador_J1);
-    enemigos1 (122,50,23,14,cont_index,enemy_b,&g4,&contador_J1);
-    enemigos1 (62,65,23,14,cont_index,enemy_b,&g5,&contador_J1);
-    enemigos1 (86,65,23,14,cont_index,enemy_b,&g6,&contador_J1);
-    enemigos1 (110,65,23,14,cont_index,enemy_b,&g7,&contador_J1);
-    enemigos1 (74,80,23,14,cont_index,enemy_b,&g8,&contador_J1);
-    enemigos1 (98,80,23,14,cont_index,enemy_b,&g9,&contador_J1);
-    enemigos1 (86,95,23,14,cont_index,enemy_b,&g10,&contador_J1);
-    enemigos1 (170,50,23,14,cont_index,enemy_c,&r1,&contador_J1);
-    enemigos1 (170+24,50,23,14,cont_index,enemy_c,&r2,&contador_J1);
-    enemigos1 (170+48,50,23,14,cont_index,enemy_c,&r3,&contador_J1);
-    enemigos1 (170+72,50,23,14,cont_index,enemy_c,&r4,&contador_J1);
-    enemigos1 (182,65,23,14,cont_index,enemy_c,&r5,&contador_J1);
-    enemigos1 (182+24,65,23,14,cont_index,enemy_c,&r6,&contador_J1);
-    enemigos1 (182+48,65,23,14,cont_index,enemy_c,&r7,&contador_J1);
-    enemigos1 (194,50+30,23,14,cont_index,enemy_c,&r8,&contador_J1);
-    enemigos1 (194+24,50+30,23,14,cont_index,enemy_c,&r9,&contador_J1);
-    enemigos1 (206,50+45,23,14,cont_index,enemy_c,&r10,&contador_J1);
+    enemigos1 (98,50,23,14,cont_index,enemy_b,&g1,&contador_J1);
+    enemigos1 (122,50,23,14,cont_index,enemy_b,&g2,&contador_J1);
+    enemigos1 (146,50,23,14,cont_index,enemy_b,&g3,&contador_J1);
+    enemigos1 (170,50,23,14,cont_index,enemy_b,&g4,&contador_J1);
+    enemigos1 (195,50,23,14,cont_index,enemy_b,&g5,&contador_J1);
+
+    enemigos1 (98,65,23,14,cont_index,enemy_b,&g6,&contador_J1);
+    enemigos1 (122,65,23,14,cont_index,enemy_b,&g7,&contador_J1);
+    enemigos1 (146,65,23,14,cont_index,enemy_b,&g8,&contador_J1);
+    enemigos1 (170,65,23,14,cont_index,enemy_b,&g9,&contador_J1);
+    enemigos1 (195,65,23,14,cont_index,enemy_b,&g10,&contador_J1);
+
+    enemigos1 (98,95,23,14,cont_index,enemy_c,&r1,&contador_J1);
+    enemigos1 (122,95,23,14,cont_index,enemy_c,&r2,&contador_J1);
+    enemigos1 (146,95,23,14,cont_index,enemy_c,&r3,&contador_J1);
+    enemigos1 (170,95,23,14,cont_index,enemy_c,&r4,&contador_J1);
+    enemigos1 (195,95,23,14,cont_index,enemy_c,&r5,&contador_J1);
+
+    enemigos1 (98,110,23,14,cont_index,enemy_c,&r7,&contador_J1);
+    enemigos1 (122,110,23,14,cont_index,enemy_c,&r8,&contador_J1);
+    enemigos1 (146,110,23,14,cont_index,enemy_c,&r9,&contador_J1);
+    enemigos1 (170,110,23,14,cont_index,enemy_c,&r10,&contador_J1);
+    enemigos1 (195,110,23,14,cont_index,enemy_c,&r6,&contador_J1);
 
     if (contador_J1==0){game_mode_flag=0;}
     if (cont_index>30){cont_index=0;}
@@ -208,8 +238,9 @@ void loop() {
     cont_index++;
   }
 }
+
 //***************************************************************************************************************************************
-// Función para inicializar LCD
+// FUNCION DE ENEMIGOS
 //***************************************************************************************************************************************
 
 void enemigos (int x,int y, int m, int q,int ind,unsigned char bla[],int* flagx, int* flag){
@@ -259,6 +290,10 @@ void enemigos2 (int x,int y, int m, int q,int ind,unsigned char bla[],int* flagx
     }
 }
   
+//*******************************************************************************************************************
+//FUNCION DE DISPARO
+//*******************************************************************************************************************
+
 void shoot(unsigned char n){
   if (n == LOW){flag1=1;}
   else if (n == HIGH && flag_1==0 && flag1==1){
@@ -267,7 +302,6 @@ void shoot(unsigned char n){
   else if(P_cor_y<=201 && P_cor_y>0 && P_cor_y>=9 && flag1==1 && flag_1==1){
     LCD_Bitmap(P_cor_x+5,P_cor_y, 11,12, proyectil);
     FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
-    //delay(100);
     P_cor_y=P_cor_y-12;}
   else if(P_cor_y<=9){
     FillRect(P_cor_x+5,P_cor_y+12,11,12,0x00);
@@ -281,15 +315,19 @@ void shoot_2(unsigned char n){
     flag_2=1;
     P2_cor_x=S;}
   else if(P2_cor_y<=201 && P2_cor_y>0 && P2_cor_y>=9 && flag2==1 && flag_2==1){
-    LCD_Bitmap(P2_cor_x+5,P2_cor_y, 11,12, proyectil_2);
-    FillRect(P2_cor_x+5,P2_cor_y+12,11,12,0x00);
+    LCD_Bitmap(P2_cor_x+5,P2_cor_y, 10,11, proyectil_2);
+    FillRect(P2_cor_x+5,P2_cor_y+12,10,11,0x00);
     P2_cor_y=P2_cor_y-12;}
   else if(P2_cor_y<=9){
-    FillRect(P2_cor_x+5,P2_cor_y+12,11,12,0x00);
+    FillRect(P2_cor_x+5,P2_cor_y+12,10,11,0x00);
     P2_cor_y=198; 
     flag2=0;
     flag_2=0;}
 }
+
+//****************************************************************************************************************
+//FUNCION DE MOVIMIENTO NAVES
+//*****************************************************************************************************************
 void move_nave (void){
   while( L != l){
     if (L < l){
@@ -370,6 +408,9 @@ void move_nave_2 (void){
   }
 }
 
+//**********************************************************************************************************************
+//FUNCIONES PUSHBUTTONS
+//**********************************************************************************************************************
 
 void pushb1 (unsigned char n){//debouce  
     if (n==LOW){W=1;}
@@ -402,6 +443,45 @@ void pushb4 (unsigned char n){
         s=s-9;}
         }}
 
+
+//***************************************************************************************************************************************
+// MOVIMIENTO LOGO
+//***************************************************************************************************************************************
+/*
+void MovLogo(void){
+  if (ContL == 10){flagL=1;}
+  else if (ContL == 10 && flag_L==0 && flagL==1){
+    flag_1=1;
+    L_cor_x=80;}
+  else if(L_cor_y==TopeL && L_cor_y>0 && L_cor_y>=9 && flagL==1 && flag_L==1){
+    LCD_Bitmap(L_cor_x+5,L_cor_y, 90,50, logo);
+    FillRect(L_cor_x+5,L_cor_y+12,90,50,0x00);
+    L_cor_y=L_cor_y-12;
+    flagL=0;
+    flag_L=0;}
+    }
+  //else if(L_cor_y<=9){
+    //FillRect(L_cor_x+5,L_cor_y+12,11,12,0x00);
+    //L_cor_y=198; 
+    //flagL=0;
+    //flag_L=0;}
+}
+*/
+
+/*
+void MovLogo(unsigned char n){
+    if(n==ContL){flagL=1;}
+    else if(n == 10 && flag_L = 0 && flagL == 1){
+        flag_L = 1;
+    }
+    else if(L_cor_y<=TopeL && L_cor_y >= n && flag_L == 1){
+        LCD_Bitmap(80, L_cor_y, 90, 50, logo);
+        FillRect(80,L_cor_y+10,90,50,0x00);
+        flagL=0;
+        flag_L=0;
+    }
+}
+*/
 
 void LCD_Init(void) {
   pinMode(LCD_RST, OUTPUT);
