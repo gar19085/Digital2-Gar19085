@@ -67,9 +67,6 @@ int w_cont_j2;
 int val_PB1;
 int val_PB2;
 
-//int ContL, TopeL;
-//int flagL ,flag_L,L_cor_x,L_cor_y;
-
 /*
 Variables para usar menu
 */
@@ -81,6 +78,8 @@ String loading = "Loading....";
 String Pl_1 = "Player 1";
 String Pl_2 = "Player 2";
 String GO = "GAME OVER";
+String Win1 = "Win Player 1";
+String Win2 = "Win Player 2";
 
 //***************************************************************************************************************************************
 // Functions Prototypes
@@ -164,6 +163,13 @@ void loop() {
       r1=0;r2=0;r3=0;r4=0;r5=0;r6=0;r7=0;r8=0;r9=0;r10=0;      
     }
     if ( val_PB2 == LOW){
+      MenuFlag2++;        
+      LCD_Print(Pl_2,120,170,1,0xffff,0x00);  
+      FillRect(120,170,60,15,0x00);
+      delay(1000);
+      LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
+    }
+    if ( MenuFlag2 == 2){
       LCD_Clear(0x00);  
       game_mode_flag=2;
       contador_J1=10;
@@ -171,7 +177,7 @@ void loop() {
       l=120;s=220;
       g1=0;g2=0;g3=0;g4=0;g5=0;g6=0;g7=0;g8=0;g9=0;g10=0;
       r1=0;r2=0;r3=0;r4=0;r5=0;r6=0;r7=0;r8=0;r9=0;r10=0;
-    }
+    }    
   }
   
   
@@ -210,6 +216,7 @@ void loop() {
 
     if (contador_J1==0){
       game_mode_flag=0;
+      MenuFlag1=0;
       LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
       delay(5000);
       LCD_Clear(0x00);
@@ -258,6 +265,7 @@ void loop() {
     
     if (contador_J1==0){
         w_cont_j1++;
+        MenuFlag2=0;
         game_mode_flag=0; 
         myFile = SD.open("PL1.txt", FILE_WRITE);
     if (myFile) {
@@ -265,11 +273,15 @@ void loop() {
       myFile.println(w_cont_j1);
       myFile.close();} 
       else {Serial.println("error opening PL1.txt");}
+      LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
+      LCD_Print(Win1, 70, 110, 1, 0xFFFF, 0x00);
+      delay(5000);
       LCD_Clear(0x00);
-      delay(500);
+      delay(100);
       }
     if (contador_J2==0){
       w_cont_j2++;
+      MenuFlag2=0;
       game_mode_flag=0; 
       myFile = SD.open("PL2.txt", FILE_WRITE);
     if (myFile) {
@@ -277,8 +289,11 @@ void loop() {
       myFile.println(w_cont_j2);
       myFile.close();} 
       else {Serial.println("error opening PL2.txt");}
+      LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
+      LCD_Print(Win2, 70, 110, 1, 0xFFFF, 0x00);
+      delay(5000);
       LCD_Clear(0x00);
-      delay(500);
+      delay(100);
     }
 
     if (cont_index>30){cont_index=0;}
@@ -475,44 +490,6 @@ void pushb4 (unsigned char n){
         }}
 
 
-//***************************************************************************************************************************************
-// MOVIMIENTO LOGO
-//***************************************************************************************************************************************
-/*
-void MovLogo(void){
-  if (ContL == 10){flagL=1;}
-  else if (ContL == 10 && flag_L==0 && flagL==1){
-    flag_1=1;
-    L_cor_x=80;}
-  else if(L_cor_y==TopeL && L_cor_y>0 && L_cor_y>=9 && flagL==1 && flag_L==1){
-    LCD_Bitmap(L_cor_x+5,L_cor_y, 90,50, logo);
-    FillRect(L_cor_x+5,L_cor_y+12,90,50,0x00);
-    L_cor_y=L_cor_y-12;
-    flagL=0;
-    flag_L=0;}
-    }
-  //else if(L_cor_y<=9){
-    //FillRect(L_cor_x+5,L_cor_y+12,11,12,0x00);
-    //L_cor_y=198; 
-    //flagL=0;
-    //flag_L=0;}
-}
-*/
-
-/*
-void MovLogo(unsigned char n){
-    if(n==ContL){flagL=1;}
-    else if(n == 10 && flag_L = 0 && flagL == 1){
-        flag_L = 1;
-    }
-    else if(L_cor_y<=TopeL && L_cor_y >= n && flag_L == 1){
-        LCD_Bitmap(80, L_cor_y, 90, 50, logo);
-        FillRect(80,L_cor_y+10,90,50,0x00);
-        flagL=0;
-        flag_L=0;
-    }
-}
-*/
 
 void LCD_Init(void) {
   pinMode(LCD_RST, OUTPUT);
