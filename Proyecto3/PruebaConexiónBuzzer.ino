@@ -1,10 +1,3 @@
-/* 
-  Keyboard cat
-  Connect a piezo buzzer or speaker to pin 11 or select a new pin.
-  More songs available at https://github.com/robsoncouto/arduino-songs                                            
-                                              
-                                              Robson Couto, 2019
-*/
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -96,26 +89,22 @@
 #define NOTE_DS8 4978
 #define REST      0
 
-
-// change this to make the song slower or faster
+int recibir = 0;
+int recibir2 = 0;
+int recibir3 = 0;
+int buzzer = 11;
+int buzzer2 = 10;
 int tempo1 = 80;
 int tempo2 = 120;
 int tempo3 = 138;
-// change this to whichever pin you want to use
-int buzzer = 11;
-int buzzer2 = 10;
 
-// notes of the moledy followed by the duration.
-// a 4 means a quarter note, 8 an eighteenth , 16 sixteenth, so on
-// !!negative numbers are used to represent dotted notes,
-// so -4 means a dotted quarter note, that is, a quarter plus an eighteenth!!
+
 int melody1[] = { 
   NOTE_D4, -8, NOTE_G4, 16, NOTE_C5, -4, 
   NOTE_B4, 8, NOTE_G4, -16, NOTE_E4, -16, NOTE_A4, -16,
   NOTE_D5, 2, 
   
 };
-
 int melody2[] = {
   NOTE_D4, 16, NOTE_D4, 16, NOTE_D5, 8, NOTE_A4, 8, NOTE_G4, 8, NOTE_G4, 8, NOTE_F4, 8,
   NOTE_D4, 16, NOTE_F4, 16, NOTE_G4, 16, NOTE_C4, 16, NOTE_C4, 16, NOTE_D4,8, NOTE_A4, 8, NOTE_G4, 8, NOTE_G4,8,
@@ -170,8 +159,6 @@ int melody3[] = {
   
 };
 
-// sizeof gives the number of bytes, each int value is composed of two bytes (16 bits)
-// there are two values per note (pitch and duration), so for each note there are four bytes
 int notes = sizeof(melody1) / sizeof(melody1[0]) / 2;
 
 int notes2 = sizeof(melody2) / sizeof(melody2[0]) / 2;
@@ -184,33 +171,63 @@ int wholenote2 = (60000 * 4) / tempo2;
 int wholenote3 = (60000 * 4) / tempo3;
 
 int divider = 0, noteDuration = 0;
+void setup(){
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+  pinMode(4, INPUT);
+  pinMode(7, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(buzzer2, OUTPUT);
+} 
 
-void setup() {
-  // iterate over the notes of the melody1.
-  // Remember, the array is twice the number of notes (notes + durations)
-  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
+
+void loop(){
+  recibir = digitalRead(2);
+  recibir2 = digitalRead(3);
+  recibir3 = digitalRead(4);
+  if(recibir == 1){
+    digitalWrite(7,HIGH);
+  }else{
+    digitalWrite(7,LOW);
+  }  
+  cancion1();
+  if(recibir2 == 1){
+      cancion2();
+  }
+  if(recibir3 == 1){
+      cancion3();
+  }
+}
+
+
+void cancion1(void){
+  if(recibir == 1){
+    for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
 
     // calculates the duration of each note
-    divider = melody1[thisNote + 1];
-    if (divider > 0) {
+        divider = melody1[thisNote + 1];
+        if (divider > 0) {
       // regular note, just proceed
-      noteDuration = (wholenote) / divider;
-    } else if (divider < 0) {
+        noteDuration = (wholenote) / divider;
+        } else if (divider < 0) {
       // dotted notes are represented with negative durations!!
-      noteDuration = (wholenote) / abs(divider);
-      noteDuration *= 1.5; // increases the duration in half for dotted notes
-    }
+        noteDuration = (wholenote) / abs(divider);
+        noteDuration *= 1.5; // increases the duration in half for dotted notes
+        }
 
     // we only play the note for 90% of the duration, leaving 10% as a pause
-    tone(buzzer, melody1[thisNote], noteDuration * 0.9);
+        tone(buzzer, melody1[thisNote], noteDuration * 0.9);
 
     // Wait for the specief duration before playing the next note.
-    delay(noteDuration);
+        delay(noteDuration);
 
     // stop the waveform generation before the next note.
-    noTone(buzzer);
-  }
-  delay(1000);
+        noTone(buzzer);
+    }
+  }  
+}
+
+void cancion2(void){
   for (int thisNote = 0; thisNote < notes2 * 2; thisNote = thisNote + 2) {
 
     // calculates the duration of each note
@@ -232,9 +249,11 @@ void setup() {
 
     // stop the waveform generation before the next note.
     noTone(buzzer2);
-  }
-  delay(1000);
-  for (int thisNote = 0; thisNote < notes3 * 2; thisNote = thisNote + 2) {
+  }  
+}
+
+void cancion3(void){
+   for (int thisNote = 0; thisNote < notes3 * 2; thisNote = thisNote + 2) {
 
     // calculates the duration of each note
     divider = melody3[thisNote + 1];
@@ -256,12 +275,4 @@ void setup() {
     // stop the waveform generation before the next note.
     noTone(buzzer);
   }  
-
 }
-
-
-void loop() {
-
-}
-
-

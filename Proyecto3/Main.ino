@@ -67,12 +67,9 @@ int w_cont_j2;
 int val_PB1;
 int val_PB2;
 
-/*
-Variables para usar menu
-*/
+//Flags/contadores para el menu
 int MenuFlag1;
 int MenuFlag2;
-
 
 String loading = "Loading....";
 String Pl_1 = "Player 1";
@@ -98,7 +95,6 @@ void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int
 void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
 
 
-//void MovLogo(void);
 void move_nave_1 (void);
 void enemigo (int x,int y);
 void shoot(unsigned char n);
@@ -127,20 +123,17 @@ void setup() {
 
  P_cor_y=198;
  P2_cor_y=198;
-  MenuFlag1 = 0;
+ MenuFlag1 = 0;
 LCD_Print(loading, 60, 100, 2, 0xFFFF,0x00);
 delay(2000); 
 LCD_Clear(0x00);
- 
-
-
 }
+
 //***************************************************************************************************************************************
 // Loop Infinito
 //***************************************************************************************************************************************
 void loop() {
   while(game_mode_flag==0){ 
-    //MovLogo(ContL);
     LCD_Bitmap(110,80,90,50,logo);
     delay(100);
     LCD_Print(Pl_1,120,140,1,0xffff,0x00);
@@ -148,7 +141,7 @@ void loop() {
     int val_PB1 = digitalRead(P3);
     int val_PB2 = digitalRead(P6);
     if (val_PB1==LOW){  
-      MenuFlag1++;;
+      MenuFlag1++;
       LCD_Print(Pl_1,120,140,1,0xffff,0x00); 
       FillRect(120,140,60,15,0x00);
       delay(1000);
@@ -177,9 +170,8 @@ void loop() {
       l=120;s=220;
       g1=0;g2=0;g3=0;g4=0;g5=0;g6=0;g7=0;g8=0;g9=0;g10=0;
       r1=0;r2=0;r3=0;r4=0;r5=0;r6=0;r7=0;r8=0;r9=0;r10=0;
-    }    
+    }   
   }
-  
   
   while (game_mode_flag==1){//UN JUAGADOR
     int val_P1 = digitalRead(P1);
@@ -274,7 +266,7 @@ void loop() {
       myFile.close();} 
       else {Serial.println("error opening PL1.txt");}
       LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
-      LCD_Print(Win1, 70, 110, 1, 0xFFFF, 0x00);
+      LCD_Print(Win1, 75, 110, 2, 0xFFFF, 0x00);
       delay(5000);
       LCD_Clear(0x00);
       delay(100);
@@ -290,7 +282,7 @@ void loop() {
       myFile.close();} 
       else {Serial.println("error opening PL2.txt");}
       LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
-      LCD_Print(Win2, 70, 110, 1, 0xFFFF, 0x00);
+      LCD_Print(Win2, 75, 110, 2, 0xFFFF, 0x00);
       delay(5000);
       LCD_Clear(0x00);
       delay(100);
@@ -335,7 +327,7 @@ void Enemigo2 (int x,int y, int m, int q,int ind,unsigned char bla[],int* flagx,
     else if (ind>10&&ind<20){LCD_Sprite(x,y,m,q,bla,2, 1, 0,0);}
     }
 }
-  
+ 
 //*******************************************************************************************************************
 //FUNCION DE DISPARO
 //*******************************************************************************************************************
@@ -490,6 +482,9 @@ void pushb4 (unsigned char n){
         }}
 
 
+//**********************************************************************************************************************
+//FUNCIONES PRINCIPALES DE LA LCD
+//**********************************************************************************************************************
 
 void LCD_Init(void) {
   pinMode(LCD_RST, OUTPUT);
