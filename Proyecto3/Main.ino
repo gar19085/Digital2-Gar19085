@@ -115,9 +115,15 @@ void PLY2  (void);
 void setup() {
   SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
   Serial.begin(9600);
+  SPI.setModule(0);
   GPIOPadConfigSet(GPIO_PORTB_BASE, 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
   LCD_Init();
   LCD_Clear(0x00);
+  if (!SD.begin(PA_3)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");  
   Serial.println("Inicio");
  pinMode(PF_2, OUTPUT);//StarTrekIntro
  pinMode(PF_3, OUTPUT);//Megalovania
