@@ -93,9 +93,8 @@ int recibir = 0;
 int recibir2 = 0;
 int recibir3 = 0;
 int buzzer = 11;
-int buzzer2 = 10;
 int tempo1 = 80;
-int tempo2 = 120;
+int tempo2 = 144;
 int tempo3 = 138;
 
 
@@ -106,10 +105,40 @@ int melody1[] = {
   
 };
 int melody2[] = {
-  NOTE_D4, 16, NOTE_D4, 16, NOTE_D5, 8, NOTE_A4, 8, NOTE_G4, 8, NOTE_G4, 8, NOTE_F4, 8,
-  NOTE_D4, 16, NOTE_F4, 16, NOTE_G4, 16, NOTE_C4, 16, NOTE_C4, 16, NOTE_D4,8, NOTE_A4, 8, NOTE_G4, 8, NOTE_G4,8,
-  NOTE_F4, 8, NOTE_D4, 16, NOTE_F4, 16, NOTE_G4, 8, NOTE_B3,16, NOTE_B3, 16, NOTE_D5, 8, NOTE_A4, 4, NOTE_G4, 8, 
-  NOTE_G4, 8, NOTE_F4, 8,  NOTE_D4, 16, NOTE_F4, 16, NOTE_G4, 16, NOTE_A3, 16, NOTE_A3, 16, NOTE_D5, 8  
+
+  REST,8, NOTE_B4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,4, NOTE_A4,8, //7
+  NOTE_A5,8, REST,8, NOTE_A5,8, NOTE_E5,-4, REST,4, 
+  NOTE_B4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8, NOTE_D5,8, NOTE_E5,8, REST,8,
+  REST,8, NOTE_CS5,8, NOTE_B4,8, NOTE_A4,-4, REST,4,
+  REST,8, NOTE_B4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8, NOTE_A4,4,
+  NOTE_E5,8, NOTE_E5,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,4, REST,4,
+   
+  NOTE_D5,2, NOTE_E5,8, NOTE_FS5,8, NOTE_D5,8, //13
+  NOTE_E5,8, NOTE_E5,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,4, NOTE_A4,4,
+  REST,2, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8,
+  REST,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,-4, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16,
+  NOTE_FS5,-8, NOTE_FS5,-8, NOTE_E5,-4, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16,
+
+  NOTE_E5,-8, NOTE_E5,-8, NOTE_D5,-8, NOTE_CS5,16, NOTE_B4,-8, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16, //18
+  NOTE_D5,4, NOTE_E5,8, NOTE_CS5,-8, NOTE_B4,16, NOTE_A4,8, NOTE_A4,8, NOTE_A4,8, 
+  NOTE_E5,4, NOTE_D5,2, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16,
+  NOTE_FS5,-8, NOTE_FS5,-8, NOTE_E5,-4, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16,
+  NOTE_A5,4, NOTE_CS5,8, NOTE_D5,-8, NOTE_CS5,16, NOTE_B4,8, NOTE_A4,16, NOTE_B4,16, NOTE_D5,16, NOTE_B4,16,
+
+  NOTE_D5,4, NOTE_E5,8, NOTE_CS5,-8, NOTE_B4,16, NOTE_A4,4, NOTE_A4,8,  //23
+  NOTE_E5,4, NOTE_D5,2, REST,4,
+  REST,8, NOTE_B4,8, NOTE_D5,8, NOTE_B4,8, NOTE_D5,8, NOTE_E5,4, REST,8,
+  REST,8, NOTE_CS5,8, NOTE_B4,8, NOTE_A4,-4, REST,4,
+  REST,8, NOTE_B4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8, NOTE_A4,4,
+  REST,8, NOTE_A5,8, NOTE_A5,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,8, NOTE_D5,8,
+  
+  REST,8, NOTE_A4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8, //29
+  REST,8, NOTE_CS5,8, NOTE_B4,8, NOTE_A4,-4, REST,4,
+  NOTE_B4,8, NOTE_B4,8, NOTE_CS5,8, NOTE_D5,8, NOTE_B4,8, NOTE_A4,4, REST,8,
+  REST,8, NOTE_E5,8, NOTE_E5,8, NOTE_FS5,4, NOTE_E5,-4, 
+  NOTE_D5,2, NOTE_D5,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,4, 
+  NOTE_E5,8, NOTE_E5,8, NOTE_FS5,8, NOTE_E5,8, NOTE_A4,8, NOTE_A4,4,
+  REST,4
 };
 
 int melody3[] = {
@@ -133,29 +162,7 @@ int melody3[] = {
   NOTE_C4,8, NOTE_C4,8, NOTE_E4,16, NOTE_G4,-8, NOTE_D4,8, NOTE_D4,8, NOTE_FS4,16, NOTE_A4,-8,
   NOTE_E5,16, NOTE_E5,16, NOTE_E4,16, NOTE_E4,-2,
   NOTE_C4,8, NOTE_C4,8, NOTE_E4,16, NOTE_G4,-8, NOTE_D4,8, NOTE_D4,8, NOTE_B3,16, NOTE_D4,-8,
-
-  //repeats a second time
-
-  NOTE_E5,16, NOTE_E5,8, NOTE_D5,16, REST,16, NOTE_CS5,-4, NOTE_E4,8, NOTE_FS4,16, NOTE_G4,16, NOTE_A4,16,
-  
-  NOTE_B4,-8, NOTE_E4,-8, NOTE_B4,8, NOTE_A4,16, NOTE_D5,-4, //7
-  NOTE_E5,16, NOTE_E5,8, NOTE_D5,16, REST,16, NOTE_CS5,-4, NOTE_E4,8, NOTE_FS4,16, NOTE_G4,16, NOTE_A4,16,
-  NOTE_B4,-8, NOTE_E4,-8, NOTE_B4,8, NOTE_A4,16, NOTE_D4,-4,
-  REST,8, NOTE_E5,8, REST,16, NOTE_B5,16, REST,8, NOTE_AS5,16, NOTE_B5,16, NOTE_AS5,16, NOTE_G5,16, REST,4,
-
-  NOTE_B5,8, NOTE_B5,16, NOTE_AS5,16, REST,16, NOTE_AS5,16, NOTE_A5,16, REST,16, NOTE_B5,16, NOTE_G5,16, NOTE_B5,16, NOTE_AS5,16, REST,16, NOTE_B5,16, NOTE_A5,16, NOTE_G5,16,//11
-  REST,8, NOTE_E5,8, REST,16, NOTE_B5,16, REST,8, NOTE_AS5,16, NOTE_B5,16, NOTE_AS5,16, NOTE_G5,16, REST,4,
-  NOTE_B5,8, NOTE_B5,16, NOTE_AS5,16, REST,16, NOTE_AS5,16, NOTE_A5,16, REST,16, NOTE_B5,16, NOTE_G5,16, NOTE_B5,16, NOTE_AS5,16, REST,16, NOTE_B5,16, NOTE_A5,16, NOTE_G5,16,
-
-  NOTE_DS4,-8, NOTE_FS4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,-8, NOTE_E4,8, //14
-  NOTE_DS4,-8, NOTE_FS4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,-8, REST,8,
-  NOTE_DS4,-8, NOTE_FS4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,-8, NOTE_E4,8,
-  NOTE_DS4,-8, NOTE_FS4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_CS5,-8, NOTE_DS5,8,
-
-  NOTE_E5,16, NOTE_E5,16, NOTE_E4,16, NOTE_E4,-2,//18
-  NOTE_C4,8, NOTE_C4,8, NOTE_E4,16, NOTE_G4,-8, NOTE_D4,8, NOTE_D4,8, NOTE_FS4,16, NOTE_A4,-8,
-  NOTE_E5,16, NOTE_E5,16, NOTE_E4,16, NOTE_E4,-2,
-  NOTE_C4,8, NOTE_C4,8, NOTE_E4,16, NOTE_G4,-8, NOTE_D4,8, NOTE_D4,8, NOTE_B3,16, NOTE_D4,-8,
+  REST,4
   
 };
 
@@ -175,9 +182,7 @@ void setup(){
   pinMode(2, INPUT);
   pinMode(3, INPUT);
   pinMode(4, INPUT);
-  pinMode(7, OUTPUT);
   pinMode(buzzer, OUTPUT);
-  pinMode(buzzer2, OUTPUT);
 } 
 
 
@@ -186,11 +191,8 @@ void loop(){
   recibir2 = digitalRead(3);
   recibir3 = digitalRead(4);
   if(recibir == 1){
-    digitalWrite(7,HIGH);
-  }else{
-    digitalWrite(7,LOW);
+    cancion1();
   }  
-  cancion1();
   if(recibir2 == 1){
       cancion2();
   }
@@ -201,7 +203,6 @@ void loop(){
 
 
 void cancion1(void){
-  if(recibir == 1){
     for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
 
     // calculates the duration of each note
@@ -224,7 +225,6 @@ void cancion1(void){
     // stop the waveform generation before the next note.
         noTone(buzzer);
     }
-  }  
 }
 
 void cancion2(void){
@@ -242,13 +242,13 @@ void cancion2(void){
     }
 
     // we only play the note for 90% of the duration, leaving 10% as a pause
-    tone(buzzer2, melody2[thisNote], noteDuration * 0.9);
+    tone(buzzer, melody2[thisNote], noteDuration * 0.9);
 
     // Wait for the specief duration before playing the next note.
     delay(noteDuration);
 
     // stop the waveform generation before the next note.
-    noTone(buzzer2);
+    noTone(buzzer);
   }  
 }
 

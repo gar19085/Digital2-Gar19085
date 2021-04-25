@@ -15,24 +15,24 @@
 #define P5 PD_6
 #define P6 PF_4
 
-int launchpadButtonState1 = 0; // variable for reading the LP button state
+int ButtonState1 = 0; // variable for reading the LP button state
 int ButtonState2 = 0;
 int intro = 0;
 
 void setup(){
-  pinMode(PF_2, OUTPUT);
-  pinMode(PF_3, OUTPUT);
-  pinMode(PE_0, OUTPUT);
+  pinMode(PF_2, OUTPUT);//StarTrekIntro
+  pinMode(PF_3, OUTPUT);//Megalovania
+  pinMode(PE_0, OUTPUT);//Castlevania
   pinMode(P1, INPUT_PULLUP);
   pinMode(P2, INPUT_PULLUP);
   pinMode(P3, INPUT_PULLUP);
   pinMode(P4, INPUT_PULLUP);
   pinMode(P5, INPUT_PULLUP);
-  pinMode(P6, INPUT_PULLUP);  
+  pinMode(P6, INPUT_PULLUP);
 }
 
 void loop(){
-  launchpadButtonState1 = digitalRead(P3);
+  ButtonState1 = digitalRead(P3);
   ButtonState2 = digitalRead(P6);
     if(launchpadButtonState1 == 0){
          digitalWrite(PF_2, HIGH);

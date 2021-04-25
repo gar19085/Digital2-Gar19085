@@ -71,6 +71,11 @@ int val_PB2;
 int MenuFlag1;
 int MenuFlag2;
 
+//Estados para guardar Pushbuttons
+int ButtonState1 = 0; 
+int ButtonState2 = 0;
+int intro = 0;
+
 String loading = "Loading....";
 String Pl_1 = "Player 1";
 String Pl_2 = "Player 2";
@@ -114,6 +119,9 @@ void setup() {
   LCD_Init();
   LCD_Clear(0x00);
   Serial.println("Inicio");
+ pinMode(PF_2, OUTPUT);//StarTrekIntro
+ pinMode(PF_3, OUTPUT);//Megalovania
+ pinMode(PE_0, OUTPUT);//Castlevania
  pinMode(P1, INPUT_PULLUP);
  pinMode(P2, INPUT_PULLUP);
  pinMode(P3, INPUT_PULLUP);
@@ -133,6 +141,7 @@ LCD_Clear(0x00);
 // Loop Infinito
 //***************************************************************************************************************************************
 void loop() {
+  digitalWrite(PF_2, HIGH); 
   while(game_mode_flag==0){ 
     LCD_Bitmap(110,80,90,50,logo);
     delay(100);
@@ -140,6 +149,7 @@ void loop() {
     LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
     int val_PB1 = digitalRead(P3);
     int val_PB2 = digitalRead(P6);
+    digitalWrite(PF_2,LOW);
     if (val_PB1==LOW){  
       MenuFlag1++;
       LCD_Print(Pl_1,120,140,1,0xffff,0x00); 
@@ -148,6 +158,7 @@ void loop() {
       LCD_Print(Pl_1,120,140,1,0xffff,0x00);
       } 
     if (MenuFlag1 == 2){
+      digitalWrite(PF_3, HIGH);
       LCD_Clear(0x00);
       game_mode_flag = 1;
       contador_J1=20;
@@ -163,6 +174,7 @@ void loop() {
       LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
     }
     if ( MenuFlag2 == 2){
+      digitalWrite(PE_0, HIGH);
       LCD_Clear(0x00);  
       game_mode_flag=2;
       contador_J1=10;
@@ -207,10 +219,11 @@ void loop() {
     Enemigo1 (195,110,23,14,cont_index,enemy_c,&r6,&contador_J1);
 
     if (contador_J1==0){
+      digitalWrite(PF_3, LOW);
       game_mode_flag=0;
       MenuFlag1=0;
       LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
-      delay(5000);
+      delay(6000);
       LCD_Clear(0x00);
       }
     if (cont_index>30){cont_index=0;}
@@ -256,6 +269,7 @@ void loop() {
     Enemigo2 (206,95,23,14,cont_index,enemy_c,&r10,&contador_J2);
     
     if (contador_J1==0){
+        digitalWrite(PE_0, LOW);
         w_cont_j1++;
         MenuFlag2=0;
         game_mode_flag=0; 
@@ -272,6 +286,7 @@ void loop() {
       delay(100);
       }
     if (contador_J2==0){
+      digitalWrite(PE_0, LOW);
       w_cont_j2++;
       MenuFlag2=0;
       game_mode_flag=0; 
@@ -283,7 +298,7 @@ void loop() {
       else {Serial.println("error opening PL2.txt");}
       LCD_Print(GO, 80, 90, 2, 0xFFFF, 0x00);
       LCD_Print(Win2, 75, 110, 2, 0xFFFF, 0x00);
-      delay(5000);
+      delay(6000);
       LCD_Clear(0x00);
       delay(100);
     }
