@@ -92,6 +92,8 @@
 int recibir = 0;
 int recibir2 = 0;
 int recibir3 = 0;
+int recibirA = 0;
+int recibir3A = 0;
 int buzzer = 11;
 int tempo1 = 80;
 int tempo2 = 144;
@@ -179,9 +181,9 @@ int wholenote3 = (60000 * 4) / tempo3;
 
 int divider = 0, noteDuration = 0;
 void setup(){
-  pinMode(2, INPUT);
-  pinMode(3, INPUT);
-  pinMode(4, INPUT);
+  pinMode(2, INPUT); //StarTreK
+  pinMode(3, INPUT); //NeverGonnaGiveYouUp
+  pinMode(4, INPUT); //Castlevania
   pinMode(buzzer, OUTPUT);
 } 
 
@@ -190,21 +192,20 @@ void loop(){
   recibir = digitalRead(2);
   recibir2 = digitalRead(3);
   recibir3 = digitalRead(4);
-  if(recibir2 == 1){
-      cancion2();
-  }
-  if(recibir3 == 1){
-      cancion3();
-  }
-  if(recibir == 1){
+  if(recibir == 1 && recibir2 == 0 && recibir3 == 0){
     cancion1();
-  }    
+  }else if(recibir == 0 && recibir2 == 1){
+    cancion2();
+  }else if(recibir == 0 && recibir3 == 1){
+    cancion3();
+  }  
 }
-
 
 void cancion1(void){
     for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
-
+      recibir = digitalRead(2);
+      recibir2 = digitalRead(3);
+      recibir3 = digitalRead(4);  
     // calculates the duration of each note
         divider = melody1[thisNote + 1];
         if (divider > 0) {
@@ -229,7 +230,11 @@ void cancion1(void){
 
 void cancion2(void){
   for (int thisNote = 0; thisNote < notes2 * 2; thisNote = thisNote + 2) {
-
+      recibir = digitalRead(2);
+      recibir2 = digitalRead(3);
+    if((recibir == 1 && recibir2 == 0) || (recibir == 0 && recibir2 == 0)){
+      break;
+    }
     // calculates the duration of each note
     divider = melody2[thisNote + 1];
     if (divider > 0) {
@@ -240,7 +245,6 @@ void cancion2(void){
       noteDuration = (wholenote2) / abs(divider);
       noteDuration *= 1.5; // increases the duration in half for dotted notes
     }
-
     // we only play the note for 90% of the duration, leaving 10% as a pause
     tone(buzzer, melody2[thisNote], noteDuration * 0.9);
 
@@ -249,12 +253,16 @@ void cancion2(void){
 
     // stop the waveform generation before the next note.
     noTone(buzzer);
-  }  
+   }
 }
 
 void cancion3(void){
    for (int thisNote = 0; thisNote < notes3 * 2; thisNote = thisNote + 2) {
-
+      recibir = digitalRead(2);
+      recibir3 = digitalRead(4); 
+     if((recibir == 1 &&  recibir3 == 0) || (recibir == 0 && recibir3 == 0)){
+       break;
+     }
     // calculates the duration of each note
     divider = melody3[thisNote + 1];
     if (divider > 0) {
@@ -274,5 +282,5 @@ void cancion3(void){
 
     // stop the waveform generation before the next note.
     noTone(buzzer);
-  }  
+    } 
 }

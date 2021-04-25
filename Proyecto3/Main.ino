@@ -126,7 +126,7 @@ void setup() {
   Serial.println("initialization done.");  
   Serial.println("Inicio");
  pinMode(PF_2, OUTPUT);//StarTrekIntro
- pinMode(PF_3, OUTPUT);//Megalovania
+ pinMode(PF_3, OUTPUT);//NeverGonnaGiveYouUp
  pinMode(PE_0, OUTPUT);//Castlevania
  pinMode(P1, INPUT_PULLUP);
  pinMode(P2, INPUT_PULLUP);
@@ -155,7 +155,7 @@ void loop() {
     LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
     int val_PB1 = digitalRead(P3);
     int val_PB2 = digitalRead(P6);
-    digitalWrite(PF_2,LOW);
+    digitalWrite(PF_2,LOW); 
     if (val_PB1==LOW){  
       MenuFlag1++;
       LCD_Print(Pl_1,120,140,1,0xffff,0x00); 
@@ -177,7 +177,7 @@ void loop() {
       LCD_Print(Pl_2,120,170,1,0xffff,0x00);  
       FillRect(120,170,60,15,0x00);
       delay(1000);
-      LCD_Print(Pl_2,120,170,1,0xffff,0x00); 
+      LCD_Print(Pl_2,120,170,1,0xffff,0x00);
     }
     if ( MenuFlag2 == 2){
       digitalWrite(PE_0, HIGH);
