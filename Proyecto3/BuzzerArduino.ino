@@ -190,15 +190,15 @@ void loop(){
   recibir = digitalRead(2);
   recibir2 = digitalRead(3);
   recibir3 = digitalRead(4);
-  if(recibir == 1){
-    cancion1();
-  }  
   if(recibir2 == 1){
       cancion2();
   }
   if(recibir3 == 1){
       cancion3();
   }
+  if(recibir == 1){
+    cancion1();
+  }    
 }
 
 
