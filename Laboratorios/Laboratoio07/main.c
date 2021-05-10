@@ -18,11 +18,15 @@
 /*
  * Variables
  * */
-uint8_t ENTRY = 0;
-uint8_t RGB = 0;
-uint8_t STATUS = 0;
-char TIME;
 
+uint8_t RGB = 0;
+uint8_t STATUSR = 0;
+uint8_t STATUSG = 0;
+uint8_t STATUSB = 0;
+uint8_t FLGR = 0;
+uint8_t FLGG = 0;
+uint8_t FLGB = 0;
+char ENTRY;
 /*
  * FUNCIONES
  * */
@@ -34,17 +38,13 @@ void setup(void);
  * Interrupciones
  * */
 void Timer0IntHandler(void){
-    TimerIntClear(TIMER0_BASE, TIMER_TMA_TIMEOUT);
-    if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_1)){
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    if(GPIOPinRead(GPIO_PORTF_BASE, RGB)){
         GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
-    }else if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2)){
-        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
-    }else if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3)){
-        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
-    }else{
+    }
+    else{
         GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, RGB);
     }
-
 }
 
 int main(void){
@@ -67,8 +67,7 @@ void setup(void){
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_TIMER0)){}
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    TIME = (SysCtlClockGet())/1;
-    TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2 - 1);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, ((SysCtlClockGet())/1) - 1);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     TimerIntRegister(TIMER0_BASE, TIMER_A, Timer0IntHandler);
     IntEnable(INT_TIMER0A);
@@ -94,7 +93,41 @@ void setup(void){
 void UARTIntHandler(void){
     UARTIntClear(UART0_BASE, UART_INT_RX | UART_INT_RT);
     ENTRY = UARTCharGet(UART0_BASE);
-    if(ENTRY == ){
+    UARTCharPut(UART0_BASE, ENTRY);
+    if(ENTRY == 'r'){
+        RGB = 2;
+        FLGR = 1;
+        FLGG = 0;
+        FLGB = 0;
+        STATUSR++;
+    }
+    if(ENTRY == 'g'){
+        RGB = 8;
+        FLGR = 0;
+        FLGG = 1;
+        FLGB = 0;
+        STATUSG++;
+    }
+    if(ENTRY == 'b'){
+        RGB = 4;
+        FLGR = 0;
+        FLGG = 0;
+        FLGB = 1;
+        STATUSB++;
+    }
+    if(FLGR == 1 && STATUSR == 2){
         RGB = 0;
+        STATUSR = 0;
+    }
+    if(FLGG == 1 && STATUSG == 2){
+        RGB = 0;
+        STATUSG = 0;
+    }
+    if(FLGB == 1 && STATUSB == 2){
+        RGB = 0;
+        STATUSB = 0;
     }
 }
+
+
+
