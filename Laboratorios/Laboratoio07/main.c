@@ -18,24 +18,22 @@
 /*
  * Variables
  * */
-uint8_t GRN;
-uint8_t RED;
-uint8_t BLU;
+uint8_t ENTRY = 0;
+uint8_t RGB = 0;
 
 /*
  * Interrupciones
  * */
 void Timer0IntHandler(void){
     TimerIntClear(TIMER0_BASE, TIMER_TMA_TIMEOUT);
+
 }
 
 
 int main(void){
     setup();
     while(1){
-
     }
-
 }
 
 void setup(){
@@ -65,7 +63,7 @@ void setup(){
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_UART0)){}
     GPIOPinConfigure(0x00000001); //RX
     GPIOPinConfigure(0x00000401); //TX
-    GPIOinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
     UARTConfigSetExpClk(UART0_NASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     IntEnable(INT_UART0);
     UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
@@ -77,5 +75,6 @@ void setup(){
 
 void UARTIntHandler(){
     UARTIntClear(UART0_BASE, UART_INT_RX | UART_INT_RT);
+    ENTRY = UARTCharGet(UART0_BASE);
 
 }
