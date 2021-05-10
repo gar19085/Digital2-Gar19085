@@ -20,15 +20,27 @@
  * */
 uint8_t ENTRY = 0;
 uint8_t RGB = 0;
+uint8_t STATUS = 0;
+
+/*
+ * FUNCIONES
+ * */
+extern void Timer0IntHandler(void);
+extern void UARTIntHandler(void);
+void setup(void);
 
 /*
  * Interrupciones
  * */
 void Timer0IntHandler(void){
     TimerIntClear(TIMER0_BASE, TIMER_TMA_TIMEOUT);
-
+    if(ENTRY == 0){
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, RGB);
+    }
+    if(ENTRY == 1){
+    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
+    }
 }
-
 
 int main(void){
     setup();
@@ -36,7 +48,7 @@ int main(void){
     }
 }
 
-void setup(){
+void setup(void){
     IntMasterEnable();//GENERAL INTERRUPTS
 
     //Clock 40MHz
@@ -73,8 +85,10 @@ void setup(){
 }
 
 
-void UARTIntHandler(){
+void UARTIntHandler(void){
     UARTIntClear(UART0_BASE, UART_INT_RX | UART_INT_RT);
     ENTRY = UARTCharGet(UART0_BASE);
-
+    if(ENTRY == ){
+        RGB = 0;
+    }
 }
