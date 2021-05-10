@@ -100,6 +100,8 @@ void UARTIntHandler(void){
         FLGG = 0;
         FLGB = 0;
         STATUSR++;
+        STATUSG = 0;
+        STATUSB = 0;
     }
     if(ENTRY == 'g'){
         RGB = 8;
@@ -107,6 +109,8 @@ void UARTIntHandler(void){
         FLGG = 1;
         FLGB = 0;
         STATUSG++;
+        STATUSR = 0;
+        STATUSB = 0;
     }
     if(ENTRY == 'b'){
         RGB = 4;
@@ -114,17 +118,25 @@ void UARTIntHandler(void){
         FLGG = 0;
         FLGB = 1;
         STATUSB++;
+        STATUSR = 0;
+        STATUSG = 0;
     }
     if(FLGR == 1 && STATUSR == 2){
         RGB = 0;
         STATUSR = 0;
+        STATUSG = 0;
+        STATUSB = 0;
     }
     if(FLGG == 1 && STATUSG == 2){
         RGB = 0;
+        STATUSR = 0;
         STATUSG = 0;
+        STATUSB = 0;
     }
     if(FLGB == 1 && STATUSB == 2){
         RGB = 0;
+        STATUSR = 0;
+        STATUSG = 0;
         STATUSB = 0;
     }
 }
