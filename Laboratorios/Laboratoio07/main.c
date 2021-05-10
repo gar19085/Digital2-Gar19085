@@ -21,6 +21,7 @@
 uint8_t ENTRY = 0;
 uint8_t RGB = 0;
 uint8_t STATUS = 0;
+char TIME;
 
 /*
  * FUNCIONES
@@ -34,12 +35,16 @@ void setup(void);
  * */
 void Timer0IntHandler(void){
     TimerIntClear(TIMER0_BASE, TIMER_TMA_TIMEOUT);
-    if(ENTRY == 0){
+    if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_1)){
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
+    }else if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2)){
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
+    }else if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3)){
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
+    }else{
         GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, RGB);
     }
-    if(ENTRY == 1){
-    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
-    }
+
 }
 
 int main(void){
@@ -61,11 +66,12 @@ void setup(void){
     //CONFIG TMR0
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_TIMER0)){}
-    TimerConfigure(TIMET0_BASE, TIMER_CFG_PERIODIC);
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+    TIME = (SysCtlClockGet())/1;
     TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2 - 1);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     TimerIntRegister(TIMER0_BASE, TIMER_A, Timer0IntHandler);
-    IntEnable(INT_TIMERA);
+    IntEnable(INT_TIMER0A);
     TimerEnable(TIMER0_BASE, TIMER_A);
 
     //CONFIG UART
@@ -76,12 +82,12 @@ void setup(void){
     GPIOPinConfigure(0x00000001); //RX
     GPIOPinConfigure(0x00000401); //TX
     GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    UARTConfigSetExpClk(UART0_NASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
+    UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     IntEnable(INT_UART0);
     UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
     UARTIntClear(UART0_BASE, UART_INT_RX | UART_INT_RT);
     UARTIntRegister(UART0_BASE, UARTIntHandler);
-    UARTEnable(UART_BASE);
+    UARTEnable(UART0_BASE);
 }
 
 
