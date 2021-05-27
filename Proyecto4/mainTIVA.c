@@ -12,6 +12,9 @@
 #include "driverlib/timer.h"
 
 uint8_t PSH1;
+uint8_t PSH2;
+uint8_t PSH3;
+uint8_t PSH4;
 
 void setup(void);
 void Timer0IntHandler(void);
@@ -19,6 +22,9 @@ void Timer0IntHandler(void);
 void Timer0IntHandler(void){
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     UARTCharPutNonBlocking(UART0_BASE, PSH1 + 48);
+    UARTCharPutNonBlocking(UART0_BASE, PSH2 + 48);
+    UARTCharPutNonBlocking(UART0_BASE, PSH3 + 48);
+    UARTCharPutNonBlocking(UART0_BASE, PSH4 + 48);
     UARTCharPutNonBlocking(UART0_BASE, 10);
 
 }
@@ -29,24 +35,52 @@ void Timer0IntHandler(void){
 int main(void)
 {
     setup();
-	while(1){
-	    if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2) == 0){
-	        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 0);
-	        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 2);
-	        PSH1 = 1;
-	    }
-	    else{
-            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 1);
+    while(1){
+        if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2) == 0){
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 0);
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 32);
+            PSH1 = 1;
+        }
+        else{
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 16);
             GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0);
             PSH1 = 0;
-	    }
-
-	}
+        }
+        if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_3) == 0){
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0);
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, 2);
+            PSH2 = 1;
+        }
+        else{
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 1);
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, 0);
+            PSH2 = 0;
+        }
+        if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_1) == 0){
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_2, 0);
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_3, 8);
+            PSH3 = 1;
+        }
+        else{
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_2, 4);
+            GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_3, 0);
+            PSH3 = 0;
+        }
+        if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_4) == 0){
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_1, 0);
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_2, 4);
+            PSH4 = 1;
+        }
+        else{
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_1, 2);
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_2, 0);
+            PSH4 = 0;
+        }
+    }
 }
 
 
 void setup(void){
-    IntMasterEnable();//GENERAL INTERRUPTS
 
     //Clock 40MHz
     SysCtlClockSet(SYSCTL_OSC_MAIN| SYSCTL_XTAL_16MHZ | SYSCTL_USE_PLL | SYSCTL_SYSDIV_5);
@@ -56,8 +90,9 @@ void setup(void){
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5);
-    GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_1| GPIO_PIN_2  |GPIO_PIN_4 | GPIO_PIN_5);
+    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1| GPIO_PIN_2 | GPIO_PIN_3);
+    GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
     //CONFIG TMR0
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -79,6 +114,8 @@ void setup(void){
     GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
     UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     UARTEnable(UART0_BASE);
+
+    IntMasterEnable();//GENERAL INTERRUPTS
 }
 
 
