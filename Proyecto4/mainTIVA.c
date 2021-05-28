@@ -21,11 +21,11 @@ void Timer0IntHandler(void);
 
 void Timer0IntHandler(void){
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    UARTCharPutNonBlocking(UART0_BASE, PSH1 + 48);
-    UARTCharPutNonBlocking(UART0_BASE, PSH2 + 48);
-    UARTCharPutNonBlocking(UART0_BASE, PSH3 + 48);
-    UARTCharPutNonBlocking(UART0_BASE, PSH4 + 48);
-    UARTCharPutNonBlocking(UART0_BASE, 10);
+    UARTCharPutNonBlocking(UART1_BASE, PSH1 + 48);
+    UARTCharPutNonBlocking(UART1_BASE, PSH2 + 48);
+    UARTCharPutNonBlocking(UART1_BASE, PSH3 + 48);
+    UARTCharPutNonBlocking(UART1_BASE, PSH4 + 48);
+    UARTCharPutNonBlocking(UART1_BASE, 10);
 
 }
 
@@ -105,15 +105,15 @@ void setup(void){
     TimerEnable(TIMER0_BASE, TIMER_A);
 
     //CONFIG UART
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOA)){}
-    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_UART0)){}
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOB)){}
+    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_UART1)){}
     GPIOPinConfigure(0x00000001); //RX
     GPIOPinConfigure(0x00000401); //TX
-    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    UARTConfigSetExpClk(UART0_BASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
-    UARTEnable(UART0_BASE);
+    GPIOPinTypeUART(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
+    UARTEnable(UART1_BASE);
 
     IntMasterEnable();//GENERAL INTERRUPTS
 }
