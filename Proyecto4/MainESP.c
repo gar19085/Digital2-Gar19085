@@ -6,10 +6,6 @@
 char RE[4];
 int D7;
 int AD7;
-int PAD; //PARQUEO A DISPONIBLE
-int PBD;
-int PCD;
-int PDD;
 /* Put your SSID & Password */
 const char* ssid = "CBV383Z2-3446-G";  // Enter SSID here
 const char* password = "83d983badeae4";  //Enter Password here
@@ -53,9 +49,7 @@ void loop() {
   D7 = AD7;
   if (RE[0] == 48) {
     D7 = AD7;
-    PAD = 0;
   } else {
-    PAD = 1;
     AD7--;
   }
   if (RE[1] == 48) {
@@ -196,17 +190,29 @@ ptr += "\n";
 ptr += "  </tr>\n";
 ptr += "  <tr>\n";
 ptr += "    <td>Parqueo B</td>\n";
-ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  if (RE[1] == 48) {
+    ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  } else {
+    ptr += "    <td>OCUPADO&nbsp;⛔</td>\n";
+  }
 ptr += "\n";
 ptr += "  </tr>\n";
 ptr += "  <tr>\n";
 ptr += "    <td>Parqueo C</td>\n";
-ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  if (RE[2] == 48) {
+    ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  } else {
+    ptr += "    <td>OCUPADO&nbsp;⛔</td>\n";
+  }
 ptr += "\n";
 ptr += "  </tr>\n";
 ptr += "  <tr>\n";
 ptr += "    <td>Parqueo D</td>\n";
-ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  if (RE[3] == 48) {
+    ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  } else {
+    ptr += "    <td>OCUPADO&nbsp;⛔</td>\n";
+  }
 ptr += "\n";
 ptr += "  </tr>\n";
 ptr += "</table>\n";
@@ -218,4 +224,3 @@ ptr += "</html>\n";
 ptr += "";
 return ptr;
 }
-
