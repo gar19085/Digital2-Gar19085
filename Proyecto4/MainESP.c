@@ -5,23 +5,17 @@
 #define TXD2 17
 char RE[4];
 int D7;
-
+int AD7;
+int PAD; //PARQUEO A DISPONIBLE
+int PBD;
+int PCD;
+int PDD;
 /* Put your SSID & Password */
-const char* ssid = "ESP32";  // Enter SSID here
-const char* password = "12345678";  //Enter Password here
-
-/* Put IP Address details */
-IPAddress local_ip(192, 168, 1, 1);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
+const char* ssid = "CBV383Z2-3446-G";  // Enter SSID here
+const char* password = "83d983badeae4";  //Enter Password here
 
 WebServer server(80);
 
-uint8_t LED1pin = 4;
-bool LED1status = LOW;
-
-uint8_t LED2pin = 5;
-bool LED2status = LOW;
 
 void setup() {
   Serial.begin(115200);
@@ -33,29 +27,55 @@ void setup() {
   pinMode(25, OUTPUT); //D
   pinMode(26, OUTPUT); //E
   pinMode(27, OUTPUT); //G
-  
-  WiFi.softAP(ssid, password);
-  WiFi.softAPConfig(local_ip, gateway, subnet);
+
+  WiFi.begin(ssid, password);
   delay(100);
-
-  server.on("/", handle_OnConnect);
-  server.on("/led1on", handle_led1on);
-  server.on("/led1off", handle_led1off);
-  server.on("/led2on", handle_led2on);
-  server.on("/led2off", handle_led2off);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected successfully");
+  Serial.print("Got IP: ");
+  Serial.println(WiFi.localIP());  //Show ESP32 IP on serial
+  server.on("/", handle_OnConnect); // Directamente desde e.g. 192.168.0.8
   server.onNotFound(handle_NotFound);
-
   server.begin();
-  Serial.println("HTTP server started");
+  Serial.println("Server started");
 }
 void loop() {
   server.handleClient();
   if (Serial2.available() > 0) {
     Serial2.readBytesUntil(10, RE, 4);
-    Serial.write(RE);
   }
-  D7 = 4;
-  DISPLAY7(D7);
+
+  AD7 = 4;
+  D7 = AD7;
+  if (RE[0] == 48) {
+    D7 = AD7;
+    PAD = 0;
+  } else {
+    PAD = 1;
+    AD7--;
+  }
+  if (RE[1] == 48) {
+    D7 = AD7;
+  } else {
+    AD7--;
+  }
+  if (RE[2] == 48) {
+    D7 = AD7;
+  } else {
+    AD7--;
+  }
+  if (RE[3] == 48) {
+    D7 = AD7;
+  } else {
+    AD7--;
+  }
+
+  DISPLAY7(AD7);
+  server.handleClient();
 }
 
 
@@ -113,82 +133,89 @@ void DISPLAY7(int a) {
 }
 
 
-  /*
-     CONDIGURACION DE HANDLER
-  */
+/*
+   CONDIGURACION DE HANDLER
+*/
+void handle_OnConnect() {
+  server.send(200, "text/html", SendHTML());
+}
 
-  void handle_OnConnect() {
-    LED1status = LOW;
-    LED2status = LOW;
-    Serial.println("GPIO4 Status: OFF | GPIO5 Status: OFF");
-    server.send(200, "text/html", SendHTML(LED1status, LED2status));
+void handle_NotFound() {
+  server.send(404, "text/plain", "Not found");
+}
+
+String SendHTML(void) {
+  String ptr = "<!DOCTYPE html> <html>\n";
+  ptr += "<!doctype html>\n";
+  ptr += "<html>\n";
+  ptr += "<head>\n";
+  ptr += "  <script type=\"text/javascript\">\n";
+  ptr += "  setTimeout(function(){\n";
+  ptr += "     window.location.reload(1);\n";
+  ptr += "  }, 5000);\t\n";
+  ptr += "</script>\n";
+  ptr += "<meta charset=\"utf-8\">\n";
+  ptr += "<title>Proyecto Digital</title>\n";
+  ptr += "<style>\n";
+  ptr += "table {\n";
+  ptr += "  font-family: arial, sans-serif;\n";
+  ptr += "  border-collapse: collapse;\n";
+  ptr += "  width: 40%;\n";
+  ptr += "}\n";
+  ptr += "\n";
+  ptr += "td, th {\n";
+  ptr += "  border: 3px solid #000000;\n";
+  ptr += "  text-align: center;\n";
+  ptr += "  padding: 10px;\n";
+  ptr += "}\n";
+  ptr += "\n";
+  ptr += "tr:nth-child(even) {\n";
+  ptr += "  background-color: #dddddd;\n";
+  ptr += "}\t\n";
+  ptr += "</style>\t\n";
+  ptr += "\t\n";
+  ptr += "</head>\n";
+  ptr += "\n";
+  ptr += "<body>\n";
+  ptr += "<h1>Control de Registro para Parqueo</h1>\n";
+  ptr += "<p>&nbsp;</p>\n";
+  ptr += "<table>\n";
+  ptr += "  <tr>\n";
+  ptr += "    <th>PARQUEO</th>\n";
+  ptr += "    <th>DISPONIBILIDAD</th>\n";
+  ptr += "\n";
+  ptr += "  </tr>\n";
+  ptr += "  <tr>\n";
+  ptr += "    <td>Parqueo A</td>\n";
+  if (RE[0] == 48) {
+    ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+  } else {
+    ptr += "    <td>OCUPADO&nbsp;⛔</td>\n";
   }
+ptr += "\n";
+ptr += "  </tr>\n";
+ptr += "  <tr>\n";
+ptr += "    <td>Parqueo B</td>\n";
+ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+ptr += "\n";
+ptr += "  </tr>\n";
+ptr += "  <tr>\n";
+ptr += "    <td>Parqueo C</td>\n";
+ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+ptr += "\n";
+ptr += "  </tr>\n";
+ptr += "  <tr>\n";
+ptr += "    <td>Parqueo D</td>\n";
+ptr += "    <td>LIBRE&nbsp;✅</td>\n";
+ptr += "\n";
+ptr += "  </tr>\n";
+ptr += "</table>\n";
+ptr += "\t\n";
+ptr += "</body>\t\n";
+ptr += "\t\n";
+ptr += "\t\n";
+ptr += "</html>\n";
+ptr += "";
+return ptr;
+}
 
-  void handle_led1on() {
-    LED1status = HIGH;
-    Serial.println("GPIO4 Status: ON");
-    server.send(200, "text/html", SendHTML(true, LED2status));
-  }
-
-  void handle_led1off() {
-    LED1status = LOW;
-    Serial.println("GPIO4 Status: OFF");
-    server.send(200, "text/html", SendHTML(false, LED2status));
-  }
-
-  void handle_led2on() {
-    LED2status = HIGH;
-    Serial.println("GPIO5 Status: ON");
-    server.send(200, "text/html", SendHTML(LED1status, true));
-  }
-
-  void handle_led2off() {
-    LED2status = LOW;
-    Serial.println("GPIO5 Status: OFF");
-    server.send(200, "text/html", SendHTML(LED1status, false));
-  }
-
-  void handle_NotFound() {
-    server.send(404, "text/plain", "Not found");
-  }
-
-  String SendHTML(uint8_t led1stat, uint8_t led2stat) {
-    String ptr = "<!DOCTYPE html> <html>\n";
-    ptr += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-    ptr += "<title>LED Control</title>\n";
-    ptr += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
-    ptr += "body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;} h3 {color: #444444;margin-bottom: 50px;}\n";
-    ptr += ".button {display: block;width: 80px;background-color: #3498db;border: none;color: white;padding: 13px 30px;text-decoration: none;font-size: 25px;margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n";
-    ptr += ".button-on {background-color: #3498db;}\n";
-    ptr += ".button-on:active {background-color: #2980b9;}\n";
-    ptr += ".button-off {background-color: #34495e;}\n";
-    ptr += ".button-off:active {background-color: #2c3e50;}\n";
-    ptr += "p {font-size: 14px;color: #888;margin-bottom: 10px;}\n";
-    ptr += "</style>\n";
-    ptr += "</head>\n";
-    ptr += "<body>\n";
-    ptr += "<h1>ESP32 Web Server</h1>\n";
-    ptr += "<h3>Using Access Point(AP) Mode</h3>\n";
-
-    if (led1stat)
-    {
-      ptr += "<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/led1off\">OFF</a>\n";
-    }
-    else
-    {
-      ptr += "<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/led1on\">ON</a>\n";
-    }
-
-    if (led2stat)
-    {
-      ptr += "<p>LED2 Status: ON</p><a class=\"button button-off\" href=\"/led2off\">OFF</a>\n";
-    }
-    else
-    {
-      ptr += "<p>LED2 Status: OFF</p><a class=\"button button-on\" href=\"/led2on\">ON</a>\n";
-    }
-
-    ptr += "</body>\n";
-    ptr += "</html>\n";
-    return ptr;
-  }
